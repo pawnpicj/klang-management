@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AddMemberForm } from "@/components/clan/add-member-form";
 import { AppHeader } from "@/components/clan/app-header";
-import { MemberRowActions } from "@/components/clan/clan-management-forms";
+import {
+  MemberRoleForm,
+  MemberRowActions,
+} from "@/components/clan/clan-management-forms";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,6 +19,7 @@ export default async function ClanMembersPage({
   searchParams: Promise<{
     added?: string;
     updated?: string;
+    roleUpdated?: string;
     removed?: string;
     error?: string;
   }>;
@@ -34,20 +38,26 @@ export default async function ClanMembersPage({
     .maybeSingle();
   if (!clan) notFound();
 
-  const [{ data: members, error }, { data: canManage }] = await Promise.all([
-    supabase
-      .from("clan_members")
-      .select(
-        "id,user_id,character_name,status,joined_at,role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
-      )
-      .eq("clan_id", clan.id)
-      .eq("status", "ACTIVE")
-      .order("joined_at", { ascending: true }),
-    supabase.rpc("has_clan_permission", {
-      p_clan_id: clan.id,
-      p_permission_code: "member.manage",
-    }),
-  ]);
+  const [{ data: members, error }, { data: roles }, { data: canManage }] =
+    await Promise.all([
+      supabase
+        .from("clan_members")
+        .select(
+          "id,user_id,role_id,character_name,status,joined_at,role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
+        )
+        .eq("clan_id", clan.id)
+        .eq("status", "ACTIVE")
+        .order("joined_at", { ascending: true }),
+      supabase
+        .from("clan_roles")
+        .select("id,name")
+        .eq("clan_id", clan.id)
+        .order("name"),
+      supabase.rpc("has_clan_permission", {
+        p_clan_id: clan.id,
+        p_permission_code: "member.manage",
+      }),
+    ]);
 
   return (
     <>
@@ -91,6 +101,14 @@ export default async function ClanMembersPage({
             role="status"
           >
             นำสมาชิกออกแล้ว
+          </p>
+        )}
+        {query.roleUpdated === "1" && (
+          <p
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
+            role="status"
+          >
+            เปลี่ยน Role สมาชิกแล้ว
           </p>
         )}
         {query.error && (
@@ -164,9 +182,18 @@ export default async function ClanMembersPage({
                             : "ยังไม่มีบัญชี"}
                         </td>
                         <td className="px-5 py-4">
-                          <span className="bg-muted rounded-full px-2.5 py-1 text-xs font-medium">
-                            {member.role.name}
-                          </span>
+                          {canManage && roles?.length ? (
+                            <MemberRoleForm
+                              clanSlug={clan.slug}
+                              memberId={member.id}
+                              roleId={member.role_id}
+                              roles={roles}
+                            />
+                          ) : (
+                            <span className="bg-muted rounded-full px-2.5 py-1 text-xs font-medium">
+                              {member.role.name}
+                            </span>
+                          )}
                         </td>
                         {canManage && (
                           <td className="px-5 py-3">

@@ -7,6 +7,7 @@ import {
   clanMemberReferenceSchema,
   createClanSchema,
   updateClanMemberSchema,
+  updateClanMemberRoleSchema,
   updateClanSchema,
 } from "@/features/clans/schemas";
 import type { ClanActionState } from "@/features/clans/state";
@@ -268,4 +269,52 @@ export async function removeClanMemberAction(formData: FormData) {
 
   revalidatePath(`/c/${parsed.data.clanSlug}/members`);
   redirect(`/c/${parsed.data.clanSlug}/members?removed=1`);
+}
+
+export async function updateClanMemberRoleAction(
+  _previousState: ClanActionState,
+  formData: FormData,
+): Promise<ClanActionState> {
+  const parsed = updateClanMemberRoleSchema.safeParse(formValues(formData));
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "กรุณาเลือก Role ที่ถูกต้อง",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  if (typeof claimsData?.claims?.sub !== "string") {
+    return { status: "error", message: "กรุณาเข้าสู่ระบบอีกครั้ง" };
+  }
+  const { data: clan } = await supabase
+    .from("clans")
+    .select("id")
+    .eq("slug", parsed.data.clanSlug)
+    .maybeSingle();
+  if (!clan) {
+    return { status: "error", message: "ไม่พบ Clan/Gang หรือคุณไม่มีสิทธิ์" };
+  }
+
+  const { error } = await supabase.rpc("update_clan_member_role", {
+    p_clan_id: clan.id,
+    p_member_id: parsed.data.memberId,
+    p_role_id: parsed.data.roleId,
+  });
+  if (error) {
+    console.error("Clan member role update failed", error.code, error.message);
+    return {
+      status: "error",
+      message:
+        error.code === "23514"
+          ? "ต้องมี Manager ที่ Active อย่างน้อย 1 คน"
+          : "เปลี่ยน Role ไม่สำเร็จ",
+    };
+  }
+
+  revalidatePath(`/c/${parsed.data.clanSlug}/members`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/dashboard`);
+  redirect(`/c/${parsed.data.clanSlug}/members?roleUpdated=1`);
 }

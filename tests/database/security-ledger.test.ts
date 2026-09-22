@@ -406,6 +406,88 @@ describe("schema, migrations and clan creation", () => {
       ).rows[0].status,
     ).toBe("REMOVED");
   });
+  it("lets managers change roles while retaining an active Manager", async () => {
+    const roles = (
+      await admin.query(
+        "select id,clan_id,name::text as name from public.clan_roles where clan_id=$1 or clan_id=$2",
+        [clanA, clanB],
+      )
+    ).rows;
+    const roleId = (clan: string, name: string) =>
+      roles.find((role) => role.clan_id === clan && role.name === name)
+        ?.id as string;
+    const roleInClan = async (user: string) =>
+      (
+        await admin.query(
+          `select r.name::text as role
+           from public.clan_members m
+           join public.clan_roles r on r.id=m.role_id and r.clan_id=m.clan_id
+           where m.clan_id=$1 and m.user_id=$2 and m.status='ACTIVE'`,
+          [clanA, user],
+        )
+      ).rows[0].role;
+    const memberId = (
+      await admin.query(
+        "select id from public.clan_members where clan_id=$1 and user_id=$2",
+        [clanA, member],
+      )
+    ).rows[0].id;
+    const aliceId = (
+      await admin.query(
+        "select id from public.clan_members where clan_id=$1 and user_id=$2",
+        [clanA, alice],
+      )
+    ).rows[0].id;
+    const clanARoles = Object.fromEntries(
+      (
+        await admin.query(
+          "select name::text,id from public.clan_roles where clan_id=$1",
+          [clanA],
+        )
+      ).rows.map((role) => [role.name, role.id]),
+    );
+
+    await sql(alice, "select public.update_clan_member_role($1,$2,$3)", [
+      clanA,
+      memberId,
+      clanARoles.Treasurer,
+    ]);
+    expect(await roleInClan(member)).toBe("Treasurer");
+
+    await expect(
+      sql(member, "select public.update_clan_member_role($1,$2,$3)", [
+        clanA,
+        aliceId,
+        clanARoles.Member,
+      ]),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(alice, "select public.update_clan_member_role($1,$2,$3)", [
+        clanA,
+        memberId,
+        roleId(clanB, "Manager"),
+      ]),
+    ).rejects.toMatchObject({ code: "P0002" });
+    await expect(
+      sql(alice, "select public.update_clan_member_role($1,$2,$3)", [
+        clanA,
+        aliceId,
+        clanARoles.Member,
+      ]),
+    ).rejects.toMatchObject({ code: "23514" });
+
+    await sql(alice, "select public.update_clan_member_role($1,$2,$3)", [
+      clanA,
+      memberId,
+      clanARoles.Manager,
+    ]);
+    await sql(alice, "select public.update_clan_member_role($1,$2,$3)", [
+      clanA,
+      aliceId,
+      clanARoles.Member,
+    ]);
+    expect(await roleInClan(alice)).toBe("Member");
+  });
   it("lets managers edit and archive their Clan but denies ordinary members", async () => {
     await sql(
       alice,

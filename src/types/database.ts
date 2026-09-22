@@ -786,6 +786,10 @@ export type Database = {
         }
         Returns: string
       }
+      update_clan_member_role: {
+        Args: { p_clan_id: string; p_member_id: string; p_role_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

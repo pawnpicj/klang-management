@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, UserMinus } from "lucide-react";
+import { Pencil, Save, UserMinus } from "lucide-react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import {
   removeClanMemberAction,
   updateClanAction,
   updateClanMemberAction,
+  updateClanMemberRoleAction,
 } from "@/features/clans/actions";
 import { initialClanState } from "@/features/clans/state";
 
@@ -184,6 +185,62 @@ export function MemberRowActions({
       </form>
       {state.message && (
         <p className="absolute top-full mt-2 text-sm text-red-600" role="alert">
+          {state.message}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function MemberRoleForm({
+  clanSlug,
+  memberId,
+  roleId,
+  roles,
+}: {
+  clanSlug: string;
+  memberId: string;
+  roleId: string;
+  roles: { id: string; name: string }[];
+}) {
+  const [state, action] = useActionState(
+    updateClanMemberRoleAction,
+    initialClanState,
+  );
+
+  return (
+    <div>
+      <form action={action} className="flex min-w-48 items-center gap-2">
+        <input type="hidden" name="clanSlug" value={clanSlug} />
+        <input type="hidden" name="memberId" value={memberId} />
+        <label className="sr-only" htmlFor={`role-${memberId}`}>
+          Role
+        </label>
+        <select
+          id={`role-${memberId}`}
+          name="roleId"
+          defaultValue={roleId}
+          className="border-input bg-background focus-visible:ring-ring h-9 min-w-0 flex-1 rounded-md border px-2 text-sm outline-none focus-visible:ring-2"
+        >
+          {roles.map((role) => (
+            <option key={role.id} value={role.id}>
+              {role.name}
+            </option>
+          ))}
+        </select>
+        <PendingButton
+          variant="default"
+          size="sm"
+          className="size-9 shrink-0 p-0"
+          title="บันทึก Role"
+          pendingText="…"
+        >
+          <Save className="size-4" aria-hidden="true" />
+          <span className="sr-only">บันทึก Role</span>
+        </PendingButton>
+      </form>
+      {state.message && (
+        <p className="mt-2 max-w-56 text-xs text-red-600" role="alert">
           {state.message}
         </p>
       )}

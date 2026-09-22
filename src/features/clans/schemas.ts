@@ -58,3 +58,7 @@ export const clanMemberReferenceSchema = updateClanMemberSchema.pick({
   clanSlug: true,
   memberId: true,
 });
+
+export const updateClanMemberRoleSchema = clanMemberReferenceSchema.extend({
+  roleId: z.uuid("Role ไม่ถูกต้อง"),
+});
