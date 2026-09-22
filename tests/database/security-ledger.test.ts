@@ -184,14 +184,14 @@ beforeEach(async () => {
 });
 
 describe("schema, migrations and clan creation", () => {
-  it("creates five roles, one Leader, exactly one active default and audit records atomically", async () => {
+  it("creates six roles, makes the creator Manager, and creates one active default atomically", async () => {
     expect(
       (
         await sql(alice, "select * from public.clan_roles where clan_id=$1", [
           clanA,
         ])
       ).rowCount,
-    ).toBe(5);
+    ).toBe(6);
     expect(
       (
         await sql(
@@ -202,8 +202,25 @@ describe("schema, migrations and clan creation", () => {
       ).rowCount,
     ).toBe(1);
     expect(
-      (await sql(alice, "select public.is_clan_leader($1) as yes", [clanA]))
-        .rows[0].yes,
+      (
+        await sql(
+          alice,
+          `select r.name::text as role
+           from public.clan_members m
+           join public.clan_roles r on r.id=m.role_id and r.clan_id=m.clan_id
+           where m.clan_id=$1 and m.user_id=$2`,
+          [clanA, alice],
+        )
+      ).rows[0].role,
+    ).toBe("Manager");
+    expect(
+      (
+        await sql(
+          alice,
+          "select public.has_clan_permission($1,'clan.manage') as yes",
+          [clanA],
+        )
+      ).rows[0].yes,
     ).toBe(true);
     expect(
       (await sql(alice, "select * from public.permissions")).rowCount,
@@ -250,7 +267,7 @@ describe("schema, migrations and clan creation", () => {
       ]),
     ).rejects.toMatchObject({ code: "23505" });
   });
-  it("enforces exactly one default and retains the last Leader", async () => {
+  it("enforces exactly one default and retains the last Manager", async () => {
     await expect(
       admin.query("update public.warehouses set is_default=true where id=$1", [
         secondA,
@@ -361,6 +378,65 @@ describe("schema, migrations and clan creation", () => {
     await expect(
       sql(alice, "select public.add_clan_member($1,'Other Clan')", [clanB]),
     ).rejects.toMatchObject({ code: "42501" });
+
+    await sql(
+      alice,
+      "select public.update_clan_member_name($1,$2,'Renamed Player')",
+      [clanA, offlineId],
+    );
+    expect(
+      (
+        await sql(
+          alice,
+          "select character_name from public.clan_members where id=$1",
+          [offlineId],
+        )
+      ).rows[0].character_name,
+    ).toBe("Renamed Player");
+    await sql(alice, "select public.remove_clan_member($1,$2)", [
+      clanA,
+      offlineId,
+    ]);
+    expect(
+      (
+        await admin.query(
+          "select status from public.clan_members where id=$1",
+          [offlineId],
+        )
+      ).rows[0].status,
+    ).toBe("REMOVED");
+  });
+  it("lets managers edit and archive their Clan but denies ordinary members", async () => {
+    await sql(
+      alice,
+      "select public.update_clan_details($1,'Renamed Clan','GANG')",
+      [clanA],
+    );
+    expect(
+      (
+        await sql(alice, "select name,type from public.clans where id=$1", [
+          clanA,
+        ])
+      ).rows[0],
+    ).toEqual({ name: "Renamed Clan", type: "GANG" });
+    await expect(
+      sql(member, "select public.update_clan_details($1,'Hacked','CLAN')", [
+        clanA,
+      ]),
+    ).rejects.toMatchObject({ code: "42501" });
+
+    await sql(alice, "select public.archive_clan($1)", [clanA]);
+    expect(
+      (
+        await admin.query("select status from public.clans where id=$1", [
+          clanA,
+        ])
+      ).rows[0].status,
+    ).toBe("ARCHIVED");
+    expect(
+      (await sql(alice, "select * from public.clans where id=$1", [clanA]))
+        .rowCount,
+    ).toBe(0);
   });
 });
 

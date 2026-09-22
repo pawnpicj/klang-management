@@ -33,3 +33,28 @@ export const addClanMemberSchema = z.object({
     .min(1, "กรุณากรอกชื่อตัวละคร")
     .max(100, "ชื่อตัวละครต้องไม่เกิน 100 ตัวอักษร"),
 });
+
+export const updateClanSchema = z.object({
+  clanSlug: clanSlugSchema,
+  name: z
+    .string()
+    .trim()
+    .min(1, "กรุณากรอกชื่อ Clan/Gang")
+    .max(100, "ชื่อต้องไม่เกิน 100 ตัวอักษร"),
+  type: z.enum(["CLAN", "GANG"], "กรุณาเลือกประเภท"),
+});
+
+export const updateClanMemberSchema = z.object({
+  clanSlug: clanSlugSchema,
+  memberId: z.uuid("ข้อมูลสมาชิกไม่ถูกต้อง"),
+  characterName: z
+    .string()
+    .trim()
+    .min(1, "กรุณากรอกชื่อตัวละคร")
+    .max(100, "ชื่อตัวละครต้องไม่เกิน 100 ตัวอักษร"),
+});
+
+export const clanMemberReferenceSchema = updateClanMemberSchema.pick({
+  clanSlug: true,
+  memberId: true,
+});

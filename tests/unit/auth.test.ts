@@ -11,7 +11,10 @@ import {
 } from "@/features/auth/avatar";
 import {
   addClanMemberSchema,
+  clanMemberReferenceSchema,
   createClanSchema,
+  updateClanMemberSchema,
+  updateClanSchema,
 } from "@/features/clans/schemas";
 
 describe("authentication validation", () => {
@@ -123,5 +126,29 @@ describe("clan validation", () => {
       expect(result.data.characterName).toBe("Offline Player");
       expect(Object.keys(result.data)).toEqual(["clanSlug", "characterName"]);
     }
+  });
+
+  it("validates Clan and member management mutations", () => {
+    expect(
+      updateClanSchema.safeParse({
+        clanSlug: "black-dragon",
+        name: "Black Dragon 2",
+        type: "GANG",
+      }).success,
+    ).toBe(true);
+    const memberId = "3f6f4a64-b262-4c08-8b93-5ee32fbf1465";
+    expect(
+      updateClanMemberSchema.safeParse({
+        clanSlug: "black-dragon",
+        memberId,
+        characterName: "Renamed",
+      }).success,
+    ).toBe(true);
+    expect(
+      clanMemberReferenceSchema.safeParse({
+        clanSlug: "black-dragon",
+        memberId: "not-a-uuid",
+      }).success,
+    ).toBe(false);
   });
 });

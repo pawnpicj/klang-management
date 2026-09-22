@@ -69,7 +69,7 @@ Permissions and default-role templates are migration-owned configuration, so dep
 
 ## Database API
 
-- `create_clan(p_name, p_slug, p_type, p_character_name)`: requires an authenticated active profile and atomically creates a clan, five system roles, their permissions, the creator's Leader membership, and Main Warehouse.
+- `create_clan(p_name, p_slug, p_type, p_character_name)`: requires an authenticated active profile and atomically creates a clan, six system roles, their permissions, the creator's Manager membership, and Main Warehouse.
 - `post_transaction(p_transaction_id)`: verifies current actor, tenant, permission, lifecycle, asset precision, warehouse direction/default/activation, contributor, and aggregated balance; posts atomically and supports retries.
 - `warehouse_asset_balances`: security-invoker view derived from POSTED transaction items. Never update a balance.
 - The Clan creation Server Action validates the session and Zod input, then calls `create_clan` in the authenticated user's RLS context.

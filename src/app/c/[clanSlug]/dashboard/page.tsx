@@ -93,9 +93,14 @@ export default async function ClanDashboardPage({
           <p className="text-muted-foreground mt-2 leading-7">
             โครงสร้าง Clan, บทบาทเริ่มต้น และ Main Warehouse ถูกสร้างครบแล้ว
           </p>
-          <Button asChild className="mt-5">
-            <Link href={`/c/${clan.slug}/members`}>จัดการสมาชิก</Link>
-          </Button>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Button asChild>
+              <Link href={`/c/${clan.slug}/members`}>จัดการสมาชิก</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={`/c/${clan.slug}/settings`}>แก้ไข Clan/Gang</Link>
+            </Button>
+          </div>
         </section>
       </main>
     </>

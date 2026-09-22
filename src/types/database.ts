@@ -731,6 +731,7 @@ export type Database = {
         Args: { p_character_name: string; p_clan_id: string }
         Returns: string
       }
+      archive_clan: { Args: { p_clan_id: string }; Returns: string }
       can_edit_transaction: {
         Args: { p_clan_id: string; p_transaction_id: string }
         Returns: boolean
@@ -764,11 +765,27 @@ export type Database = {
       is_clan_leader: { Args: { p_clan_id: string }; Returns: boolean }
       is_clan_member: { Args: { p_clan_id: string }; Returns: boolean }
       post_transaction: { Args: { p_transaction_id: string }; Returns: string }
+      remove_clan_member: {
+        Args: { p_clan_id: string; p_member_id: string }
+        Returns: string
+      }
       reset_login_rate_limit: {
         Args: { p_key_hash: string }
         Returns: undefined
       }
       resolve_login_email: { Args: { p_username: string }; Returns: string }
+      update_clan_details: {
+        Args: { p_clan_id: string; p_name: string; p_type: string }
+        Returns: string
+      }
+      update_clan_member_name: {
+        Args: {
+          p_character_name: string
+          p_clan_id: string
+          p_member_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

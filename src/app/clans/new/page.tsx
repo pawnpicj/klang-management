@@ -17,7 +17,8 @@ export default function NewClanPage() {
           สร้าง Clan/Gang
         </h1>
         <p className="text-muted-foreground mt-2 leading-7">
-          ระบบจะสร้างบทบาทมาตรฐาน สมาชิก Leader และ Main Warehouse ให้อัตโนมัติ
+          ระบบจะให้ผู้สร้างเป็น Manager และสร้างบทบาทมาตรฐานพร้อม Main Warehouse
+          ให้อัตโนมัติ
         </p>
         <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
           <CreateClanForm />

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AddMemberForm } from "@/components/clan/add-member-form";
 import { AppHeader } from "@/components/clan/app-header";
+import { MemberRowActions } from "@/components/clan/clan-management-forms";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,7 +13,12 @@ export default async function ClanMembersPage({
   searchParams,
 }: {
   params: Promise<{ clanSlug: string }>;
-  searchParams: Promise<{ added?: string }>;
+  searchParams: Promise<{
+    added?: string;
+    updated?: string;
+    removed?: string;
+    error?: string;
+  }>;
 }) {
   const [{ clanSlug }, query] = await Promise.all([params, searchParams]);
   const supabase = await createClient();
@@ -71,6 +77,32 @@ export default async function ClanMembersPage({
             เพิ่มสมาชิกแล้ว
           </p>
         )}
+        {query.updated === "1" && (
+          <p
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
+            role="status"
+          >
+            แก้ไขชื่อสมาชิกแล้ว
+          </p>
+        )}
+        {query.removed === "1" && (
+          <p
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
+            role="status"
+          >
+            นำสมาชิกออกแล้ว
+          </p>
+        )}
+        {query.error && (
+          <p
+            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
+            role="alert"
+          >
+            {query.error === "last-manager"
+              ? "ไม่สามารถนำ Manager คนสุดท้ายออกได้"
+              : "นำสมาชิกออกไม่สำเร็จ"}
+          </p>
+        )}
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <section className="border-input overflow-hidden rounded-xl border">
@@ -87,23 +119,29 @@ export default async function ClanMembersPage({
             ) : members?.length ? (
               <ul className="divide-input divide-y">
                 {members.map((member) => (
-                  <li
-                    key={member.id}
-                    className="flex items-center justify-between gap-4 px-5 py-4"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">
-                        {member.character_name}
-                      </p>
-                      <p className="text-muted-foreground mt-1 text-xs">
-                        {member.user_id
-                          ? "เชื่อมกับบัญชีแล้ว"
-                          : "สมาชิกที่ยังไม่มีบัญชี"}
-                      </p>
+                  <li key={member.id} className="px-5 py-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">
+                          {member.character_name}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          {member.user_id
+                            ? "เชื่อมกับบัญชีแล้ว"
+                            : "สมาชิกที่ยังไม่มีบัญชี"}
+                        </p>
+                      </div>
+                      <span className="bg-muted shrink-0 rounded-full px-2.5 py-1 text-xs font-medium">
+                        {member.role.name}
+                      </span>
                     </div>
-                    <span className="bg-muted shrink-0 rounded-full px-2.5 py-1 text-xs font-medium">
-                      {member.role.name}
-                    </span>
+                    {canManage && (
+                      <MemberRowActions
+                        clanSlug={clan.slug}
+                        memberId={member.id}
+                        characterName={member.character_name}
+                      />
+                    )}
                   </li>
                 ))}
               </ul>

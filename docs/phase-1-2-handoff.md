@@ -54,7 +54,7 @@ Transaction items และ attachments มี `clan_id` ของตนเอ�
 - composite FK ป้องกัน role/member/invite/asset/warehouse/transaction/attachment/reversal อ้างข้าม clan
 - role ที่มีสมาชิกหรือ invite อ้างอยู่ลบไม่ได้; system roles และ system permission mappings แก้จาก application ไม่ได้; custom roles ใช้ member.manage
 - default warehouse ต้องมี **หนึ่งแห่งและ active** ตอน commit: partial unique index ป้องกันมากกว่าหนึ่ง และ deferred constraint ป้องกันไม่มี default
-- ทุก clan ต้องเหลือ ACTIVE Leader อย่างน้อยหนึ่งคน; create_clan สร้างทั้งหมดใน transaction เดียว
+- ทุก clan ต้องเหลือ ACTIVE Manager อย่างน้อยหนึ่งคน; migration Phase 4 เปลี่ยนผู้สร้างและ invariant จาก Leader เป็น Manager
 - transaction_no และ client_request_id unique ต่อ clan; duplicate client_request_id ถูกปฏิเสธด้วย unique constraint; post ซ้ำไม่เพิ่ม ledger
 - item quantity > 0 และไม่เป็น NaN; decimal_places 0–4; ตรวจ precision ตาม asset ตอน post
 - asset/warehouse ที่ inactive ใช้ post ไม่ได้; deposit เข้า default ปัจจุบันเท่านั้น; transfer ต้องมีต้นทาง/ปลายทางต่างกัน; adjustment ใช้หนึ่งทิศทางต่อบรรทัด
@@ -84,7 +84,7 @@ apply ทั้งสามไฟล์สำเร็จบนฐานข้�
 | clans                    | ACTIVE member + ACTIVE profile + ACTIVE clan | clan.manage เฉพาะชื่อ/game/server/logo; create ผ่าน RPC                                                             |
 | clan_roles               | ACTIVE member                                | member.manage เฉพาะ custom role; ห้ามลบ role ที่ถูกอ้างอิง                                                          |
 | role_permissions         | ACTIVE member                                | member.manage เฉพาะ custom role ของ clan เดียวกัน                                                                   |
-| clan_members             | member.view หรือ membership ของตนเอง         | member.manage เปลี่ยน role/character/status; ห้ามเอา Leader คนสุดท้ายออก                                            |
+| clan_members             | member.view หรือ membership ของตนเอง         | member.manage เปลี่ยน role/character/status; ห้ามเอา Manager คนสุดท้ายออก                                           |
 | clan_invites             | member.manage                                | ปิดจนมี atomic invite/join flow                                                                                     |
 | warehouses               | warehouse.view                               | warehouse.create สำหรับสร้าง; warehouse.edit สำหรับชื่อ/description/order; ไม่เปิด direct default/deactivate/delete |
 | assets                   | asset.view                                   | asset.manage สำหรับสร้างและแก้ชื่อ/รูป; ปิดการแก้คุณสมบัติ ledger ตรง ๆ                                             |
@@ -96,7 +96,7 @@ apply ทั้งสามไฟล์สำเร็จบนฐานข้�
 
 Anonymous ไม่มี table access หรือสิทธิ์ execute helper/RPC; ไม่มี anonymous username/email lookup. Helpers ตรวจ ACTIVE profile/membership/clan และใช้ fixed empty search_path. private schema ไม่ถูก expose ผ่าน Data API.
 
-Default Member อ่านข้อมูลพื้นฐานและรายงานได้ แต่ไม่มี mutation permissions; Depositor เพิ่ม deposit; Treasurer เพิ่ม deposit/withdraw/transfer; Approver เพิ่ม approve; Leader มีทั้ง 18 permissions. บัญชีเดียวมี role ต่างกันในแต่ละ clan ได้
+Default Member อ่านข้อมูลพื้นฐานและรายงานได้ แต่ไม่มี mutation permissions; Depositor เพิ่ม deposit; Treasurer เพิ่ม deposit/withdraw/transfer; Approver เพิ่ม approve; Leader และ Manager มีทั้ง 18 permissions. ผู้สร้าง Clan/Gang ใหม่เป็น Manager และบัญชีเดียวมี role ต่างกันในแต่ละ clan ได้
 
 DRAFT post ต้องมี permission ตรงประเภท; PENDING post ต้องมี transaction.approve และบันทึก approved_by/approved_at. Approver เดิม retry POSTED ของตนได้เมื่อยังมีสิทธิ์. ยังไม่มี API เปลี่ยน DRAFT เป็น PENDING หรือ approval UI
 
@@ -112,7 +112,7 @@ DRAFT post ต้องมี permission ตรงประเภท; PENDING po
 | npm run db:types:embedded | generate จาก migrated PostgreSQL 17 สำเร็จ      |
 | npm run format:check      | ผ่าน                                            |
 
-Database tests ใช้ PostgreSQL จริง ไม่ได้ mock SQL/RLS/transaction engine. ครอบคลุม cross-tenant reads/writes, custom/default roles, anonymous access, blocked/removed/suspended access, composite FK, atomic clan rollback, default/Leader constraints, immutable audit/ledger, precision/active asset/default warehouse, transfer conservation, insufficient balance, duplicate requests, concurrent withdrawals, concurrent retries และ pending approval
+Database tests ใช้ PostgreSQL จริง ไม่ได้ mock SQL/RLS/transaction engine. ครอบคลุม cross-tenant reads/writes, custom/default roles, anonymous access, blocked/removed/suspended access, composite FK, atomic clan rollback, default/Manager constraints, immutable audit/ledger, precision/active asset/default warehouse, transfer conservation, insufficient balance, duplicate requests, concurrent withdrawals, concurrent retries และ pending approval
 
 Fixture harness สร้าง minimal auth.users/auth.uid()/database roles เพื่อจำลองสัญญาการเชื่อมต่อ Supabase Auth เฉพาะการทดสอบ SQL. **ยังไม่ได้ตรวจบริการ Supabase Auth, PostgREST หรือ Storage แบบครบ stack** และยังไม่ได้ apply migration บน cloud project
 
