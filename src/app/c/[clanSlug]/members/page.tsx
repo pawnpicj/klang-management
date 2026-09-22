@@ -104,11 +104,29 @@ export default async function ClanMembersPage({
           </p>
         )}
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="mt-8 space-y-6">
+          {canManage ? (
+            <section className="border-input rounded-xl border p-5 sm:p-6">
+              <h2 className="text-lg font-semibold">เพิ่มสมาชิก</h2>
+              <p className="text-muted-foreground mt-2 text-sm leading-6">
+                สมาชิกไม่จำเป็นต้องสมัครบัญชี และจะได้รับ Role Member อัตโนมัติ
+              </p>
+              <div className="mt-5 max-w-xl">
+                <AddMemberForm clanSlug={clan.slug} />
+              </div>
+            </section>
+          ) : (
+            <section className="bg-muted rounded-xl p-5">
+              <p className="text-sm">
+                คุณดูรายชื่อสมาชิกได้ แต่ไม่มีสิทธิ์เพิ่มสมาชิก
+              </p>
+            </section>
+          )}
+
           <section className="border-input overflow-hidden rounded-xl border">
-            <div className="border-input border-b px-5 py-4">
+            <div className="border-input flex items-center justify-between border-b px-5 py-4">
               <h2 className="font-semibold">รายชื่อสมาชิก</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
+              <p className="text-muted-foreground text-sm">
                 {members?.length ?? 0} คน
               </p>
             </div>
@@ -117,58 +135,62 @@ export default async function ClanMembersPage({
                 โหลดรายชื่อสมาชิกไม่สำเร็จ
               </p>
             ) : members?.length ? (
-              <ul className="divide-input divide-y">
-                {members.map((member) => (
-                  <li key={member.id} className="px-5 py-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] text-left text-sm">
+                  <thead className="bg-muted/50 text-muted-foreground">
+                    <tr>
+                      <th scope="col" className="px-5 py-3 font-medium">
+                        ชื่อตัวละคร
+                      </th>
+                      <th scope="col" className="px-5 py-3 font-medium">
+                        สถานะบัญชี
+                      </th>
+                      <th scope="col" className="px-5 py-3 font-medium">
+                        Role
+                      </th>
+                      {canManage && (
+                        <th scope="col" className="px-5 py-3 font-medium">
+                          จัดการ
+                        </th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-input divide-y">
+                    {members.map((member) => (
+                      <tr key={member.id} className="align-top">
+                        <td className="px-5 py-4 font-medium">
                           {member.character_name}
-                        </p>
-                        <p className="text-muted-foreground mt-1 text-xs">
+                        </td>
+                        <td className="text-muted-foreground px-5 py-4">
                           {member.user_id
                             ? "เชื่อมกับบัญชีแล้ว"
-                            : "สมาชิกที่ยังไม่มีบัญชี"}
-                        </p>
-                      </div>
-                      <span className="bg-muted shrink-0 rounded-full px-2.5 py-1 text-xs font-medium">
-                        {member.role.name}
-                      </span>
-                    </div>
-                    {canManage && (
-                      <MemberRowActions
-                        clanSlug={clan.slug}
-                        memberId={member.id}
-                        characterName={member.character_name}
-                      />
-                    )}
-                  </li>
-                ))}
-              </ul>
+                            : "ยังไม่มีบัญชี"}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="bg-muted rounded-full px-2.5 py-1 text-xs font-medium">
+                            {member.role.name}
+                          </span>
+                        </td>
+                        {canManage && (
+                          <td className="px-5 py-3">
+                            <MemberRowActions
+                              clanSlug={clan.slug}
+                              memberId={member.id}
+                              characterName={member.character_name}
+                            />
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : (
               <p className="text-muted-foreground p-5 text-sm">
                 ยังไม่มีสมาชิก
               </p>
             )}
           </section>
-
-          {canManage ? (
-            <section className="border-input h-fit rounded-xl border p-5">
-              <h2 className="text-lg font-semibold">เพิ่มสมาชิก</h2>
-              <p className="text-muted-foreground mt-2 text-sm leading-6">
-                สมาชิกไม่จำเป็นต้องสมัครบัญชี และจะได้รับ Role Member อัตโนมัติ
-              </p>
-              <div className="mt-5">
-                <AddMemberForm clanSlug={clan.slug} />
-              </div>
-            </section>
-          ) : (
-            <section className="bg-muted h-fit rounded-xl p-5">
-              <p className="text-sm">
-                คุณดูรายชื่อสมาชิกได้ แต่ไม่มีสิทธิ์เพิ่มสมาชิก
-              </p>
-            </section>
-          )}
         </div>
       </main>
     </>
