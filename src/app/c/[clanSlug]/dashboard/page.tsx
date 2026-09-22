@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Settings2, UsersRound } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
 import { Button } from "@/components/ui/button";
@@ -26,24 +27,33 @@ export default async function ClanDashboardPage({
     .maybeSingle();
   if (!clan) notFound();
 
-  const [{ data: membership }, { data: warehouse }] = await Promise.all([
-    supabase
-      .from("clan_members")
-      .select(
-        "character_name, role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
-      )
-      .eq("clan_id", clan.id)
-      .eq("user_id", userId)
-      .eq("status", "ACTIVE")
-      .maybeSingle(),
-    supabase
-      .from("warehouses")
-      .select("id,name")
-      .eq("clan_id", clan.id)
-      .eq("is_default", true)
-      .eq("is_active", true)
-      .maybeSingle(),
-  ]);
+  const [{ data: membership }, { data: warehouse }, { data: members }] =
+    await Promise.all([
+      supabase
+        .from("clan_members")
+        .select(
+          "character_name, role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
+        )
+        .eq("clan_id", clan.id)
+        .eq("user_id", userId)
+        .eq("status", "ACTIVE")
+        .maybeSingle(),
+      supabase
+        .from("warehouses")
+        .select("id,name")
+        .eq("clan_id", clan.id)
+        .eq("is_default", true)
+        .eq("is_active", true)
+        .maybeSingle(),
+      supabase
+        .from("clan_members")
+        .select(
+          "id,character_name,user_id,role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
+        )
+        .eq("clan_id", clan.id)
+        .eq("status", "ACTIVE")
+        .order("joined_at", { ascending: true }),
+    ]);
   if (!membership) notFound();
 
   return (
@@ -55,9 +65,34 @@ export default async function ClanDashboardPage({
             <p className="text-primary text-sm font-semibold">
               {clan.type === "CLAN" ? "Clan" : "Gang"} · {clan.slug}
             </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight">
-              {clan.name}
-            </h1>
+            <div className="mt-2 flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">{clan.name}</h1>
+              <div className="flex items-center gap-2">
+                <Button
+                  asChild
+                  size="sm"
+                  className="size-9 p-0"
+                  aria-label="จัดการสมาชิก"
+                  title="จัดการสมาชิก"
+                >
+                  <Link href={`/c/${clan.slug}/members`}>
+                    <UsersRound className="size-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="sm"
+                  variant="warning"
+                  className="size-9 p-0"
+                  aria-label="แก้ไข Clan/Gang"
+                  title="แก้ไข Clan/Gang"
+                >
+                  <Link href={`/c/${clan.slug}/settings`}>
+                    <Settings2 className="size-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
             {(clan.game_name || clan.server_name) && (
               <p className="text-muted-foreground mt-2">
                 {[clan.game_name, clan.server_name].filter(Boolean).join(" · ")}
@@ -88,19 +123,44 @@ export default async function ClanDashboardPage({
           </div>
         </section>
 
-        <section className="border-input mt-8 rounded-xl border p-6">
-          <h2 className="text-xl font-semibold">พื้นที่พร้อมใช้งาน</h2>
-          <p className="text-muted-foreground mt-2 leading-7">
-            โครงสร้าง Clan, บทบาทเริ่มต้น และ Main Warehouse ถูกสร้างครบแล้ว
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Button asChild>
-              <Link href={`/c/${clan.slug}/members`}>จัดการสมาชิก</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={`/c/${clan.slug}/settings`}>แก้ไข Clan/Gang</Link>
-            </Button>
+        <section className="border-input mt-8 overflow-hidden rounded-xl border">
+          <div className="border-input flex items-center justify-between border-b px-5 py-4">
+            <div className="flex items-center gap-2">
+              <UsersRound className="text-primary size-5" aria-hidden="true" />
+              <h2 className="text-xl font-semibold">รายชื่อสมาชิก</h2>
+            </div>
+            <span className="text-muted-foreground text-sm">
+              {members?.length ?? 0} คน
+            </span>
           </div>
+          {members?.length ? (
+            <ul className="divide-input divide-y">
+              {members.map((member) => (
+                <li
+                  key={member.id}
+                  className="flex items-center justify-between gap-4 px-5 py-4"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">
+                      {member.character_name}
+                    </p>
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      {member.user_id
+                        ? "เชื่อมกับบัญชีแล้ว"
+                        : "สมาชิกที่ยังไม่มีบัญชี"}
+                    </p>
+                  </div>
+                  <span className="bg-muted shrink-0 rounded-full px-2.5 py-1 text-xs font-medium">
+                    {member.role.name}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground px-5 py-6 text-sm">
+              ยังไม่มีสมาชิก
+            </p>
+          )}
         </section>
       </main>
     </>
