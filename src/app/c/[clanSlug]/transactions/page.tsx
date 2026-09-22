@@ -1,27 +1,17 @@
-import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
-import { TransactionForm } from "@/components/clan/transaction-forms";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 const labels: Record<string, string> = {
-  DEPOSIT: "รับเข้าคลัง",
-  WITHDRAW: "นำออกจากคลัง",
-  TRANSFER: "ย้ายคลัง",
-  ADJUSTMENT: "ปรับยอด",
-  REVERSAL: "รายการย้อนกลับ",
-};
-
-const statusLabels: Record<string, string> = {
-  POSTED: "สำเร็จ",
-  VOIDED: "ยกเลิกแล้ว",
-  PENDING: "รอดำเนินการ",
-  DRAFT: "ฉบับร่าง",
-  REJECTED: "ไม่สำเร็จ",
+  DEPOSIT: "Deposit",
+  WITHDRAW: "Withdraw",
+  TRANSFER: "Transfer",
+  ADJUSTMENT: "Adjustment",
+  REVERSAL: "Reversal",
 };
 
 export default async function TransactionsPage({
@@ -72,58 +62,27 @@ export default async function TransactionsPage({
     transactionQuery = transactionQuery.gte("transaction_date", filters.from);
   if (filters.to && /^\d{4}-\d{2}-\d{2}$/.test(filters.to))
     transactionQuery = transactionQuery.lte("transaction_date", filters.to);
-  const [
-    { data: transactions, error },
-    deposit,
-    withdraw,
-    transfer,
-    { data: assets },
-    { data: warehouses },
-    { data: members },
-  ] = await Promise.all([
-    transactionQuery,
-    supabase.rpc("has_clan_permission", {
-      p_clan_id: clan.id,
-      p_permission_code: "transaction.deposit",
-    }),
-    supabase.rpc("has_clan_permission", {
-      p_clan_id: clan.id,
-      p_permission_code: "transaction.withdraw",
-    }),
-    supabase.rpc("has_clan_permission", {
-      p_clan_id: clan.id,
-      p_permission_code: "warehouse.transfer",
-    }),
-    supabase
-      .from("assets")
-      .select("id,code,name,unit,decimal_places")
-      .eq("clan_id", clan.id)
-      .eq("is_active", true)
-      .order("code"),
-    supabase
-      .from("warehouses")
-      .select("id,name,is_default")
-      .eq("clan_id", clan.id)
-      .eq("is_active", true)
-      .order("is_default", { ascending: false })
-      .order("name"),
-    supabase
-      .from("clan_members")
-      .select("id,character_name")
-      .eq("clan_id", clan.id)
-      .eq("status", "ACTIVE")
-      .order("character_name"),
-  ]);
-  const availableTypes = [
-    deposit.data ? ("DEPOSIT" as const) : null,
-    withdraw.data ? ("WITHDRAW" as const) : null,
-    transfer.data ? ("TRANSFER" as const) : null,
-  ].filter((type): type is "DEPOSIT" | "WITHDRAW" | "TRANSFER" => !!type);
+  const [{ data: transactions, error }, deposit, withdraw, transfer] =
+    await Promise.all([
+      transactionQuery,
+      supabase.rpc("has_clan_permission", {
+        p_clan_id: clan.id,
+        p_permission_code: "transaction.deposit",
+      }),
+      supabase.rpc("has_clan_permission", {
+        p_clan_id: clan.id,
+        p_permission_code: "transaction.withdraw",
+      }),
+      supabase.rpc("has_clan_permission", {
+        p_clan_id: clan.id,
+        p_permission_code: "warehouse.transfer",
+      }),
+    ]);
   return (
     <>
       <AppHeader activeClan={clan.name} />
       <main className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-6">
-        <div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Link
               href={`/c/${clan.slug}/dashboard`}
@@ -131,10 +90,33 @@ export default async function TransactionsPage({
             >
               ← กลับ Dashboard
             </Link>
-            <h1 className="mt-4 text-3xl font-bold">รายการคลัง</h1>
+            <h1 className="mt-4 text-3xl font-bold">Transactions</h1>
             <p className="text-muted-foreground mt-2">
-              รับเข้า นำออก และย้ายสินค้าในคลังของ {clan.name}
+              รายการเคลื่อนไหวคลังของ {clan.name}
             </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {deposit.data && (
+              <Button asChild>
+                <Link href={`/c/${clan.slug}/transactions/new/deposit`}>
+                  Deposit
+                </Link>
+              </Button>
+            )}
+            {withdraw.data && (
+              <Button asChild variant="warning">
+                <Link href={`/c/${clan.slug}/transactions/new/withdraw`}>
+                  Withdraw
+                </Link>
+              </Button>
+            )}
+            {transfer.data && (
+              <Button asChild variant="outline">
+                <Link href={`/c/${clan.slug}/transactions/new/transfer`}>
+                  Transfer
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
         {filters.error === "permission" && (
@@ -142,93 +124,64 @@ export default async function TransactionsPage({
             คุณไม่มีสิทธิ์ทำรายการประเภทนี้
           </p>
         )}
-        {availableTypes.length > 0 && (
-          <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
-            <h2 className="text-xl font-semibold">ทำรายการใหม่</h2>
-            <p className="text-muted-foreground mt-1 text-sm">
-              เลือกประเภท สินค้า และจำนวนที่ต้องการ
-            </p>
-            {assets?.length ? (
-              <div className="mt-5">
-                <TransactionForm
-                  clanSlug={clan.slug}
-                  transactionType={availableTypes[0]}
-                  availableTypes={availableTypes}
-                  clientRequestId={randomUUID()}
-                  assets={assets}
-                  warehouses={warehouses ?? []}
-                  members={members ?? []}
-                />
-              </div>
-            ) : (
-              <p className="mt-4 text-sm">กรุณาสร้างสินค้าก่อนทำรายการ</p>
-            )}
-          </section>
-        )}
-        <details className="border-input mt-8 rounded-xl border p-4">
-          <summary className="cursor-pointer font-medium">
-            ค้นหาและกรองรายการ
-          </summary>
-          <form className="mt-4 grid gap-3 sm:grid-cols-5 sm:items-end">
-            <label className="text-sm">
-              ประเภท
-              <select
-                name="type"
-                defaultValue={filters.type ?? ""}
-                className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
-              >
-                <option value="">ทั้งหมด</option>
-                {Object.entries(labels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="text-sm">
-              สถานะ
-              <select
-                name="status"
-                defaultValue={filters.status ?? ""}
-                className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
-              >
-                <option value="">ทั้งหมด</option>
-                {["POSTED", "VOIDED", "PENDING", "DRAFT", "REJECTED"].map(
-                  (value) => (
-                    <option key={value} value={value}>
-                      {statusLabels[value] ?? value}
-                    </option>
-                  ),
-                )}
-              </select>
-            </label>
-            <label className="text-sm">
-              จากวันที่
-              <input
-                type="date"
-                name="from"
-                defaultValue={filters.from ?? ""}
-                className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
-              />
-            </label>
-            <label className="text-sm">
-              ถึงวันที่
-              <input
-                type="date"
-                name="to"
-                defaultValue={filters.to ?? ""}
-                className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
-              />
-            </label>
-            <Button type="submit" variant="outline">
-              ค้นหา
-            </Button>
-          </form>
-        </details>
-        <h2 className="mt-8 text-xl font-semibold">ประวัติรายการ</h2>
+        <form className="border-input mt-8 grid gap-3 rounded-xl border p-4 sm:grid-cols-5 sm:items-end">
+          <label className="text-sm">
+            ประเภท
+            <select
+              name="type"
+              defaultValue={filters.type ?? ""}
+              className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
+            >
+              <option value="">ทั้งหมด</option>
+              {Object.entries(labels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm">
+            สถานะ
+            <select
+              name="status"
+              defaultValue={filters.status ?? ""}
+              className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
+            >
+              <option value="">ทั้งหมด</option>
+              {["POSTED", "VOIDED", "PENDING", "DRAFT", "REJECTED"].map(
+                (value) => (
+                  <option key={value}>{value}</option>
+                ),
+              )}
+            </select>
+          </label>
+          <label className="text-sm">
+            จากวันที่
+            <input
+              type="date"
+              name="from"
+              defaultValue={filters.from ?? ""}
+              className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
+            />
+          </label>
+          <label className="text-sm">
+            ถึงวันที่
+            <input
+              type="date"
+              name="to"
+              defaultValue={filters.to ?? ""}
+              className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
+            />
+          </label>
+          <Button type="submit" variant="outline">
+            กรองรายการ
+          </Button>
+        </form>
         <section className="border-input mt-6 overflow-hidden rounded-xl border">
           {error ? (
-            <p className="p-5 text-sm text-red-600">โหลดรายการไม่สำเร็จ</p>
+            <p className="p-5 text-sm text-red-600">
+              โหลด Transactions ไม่สำเร็จ
+            </p>
           ) : transactions?.length ? (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px] text-left text-sm">
@@ -264,8 +217,7 @@ export default async function TransactionsPage({
                       </td>
                       <td className="px-5 py-4">
                         <span className="bg-muted rounded-full px-2.5 py-1 text-xs">
-                          {statusLabels[transaction.status] ??
-                            transaction.status}
+                          {transaction.status}
                         </span>
                       </td>
                     </tr>
@@ -275,7 +227,7 @@ export default async function TransactionsPage({
             </div>
           ) : (
             <p className="text-muted-foreground p-5 text-sm">
-              ยังไม่มีรายการคลัง
+              ยังไม่มี Transaction
             </p>
           )}
         </section>

@@ -79,7 +79,7 @@ export async function TransactionCreatePage({
         </Link>
         <h1 className="mt-4 text-3xl font-bold">สร้าง {title}</h1>
         <p className="text-muted-foreground mt-2">
-          เลือกสินค้า ระบุจำนวน แล้วบันทึกรายการ
+          รายการจะถูกตรวจยอดและ Post แบบ atomic
         </p>
         <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
           {assets?.length ? (
