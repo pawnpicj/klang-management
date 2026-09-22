@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   Package,
+  ReceiptText,
   Settings2,
   ShieldCheck,
   UsersRound,
@@ -129,7 +130,17 @@ export default async function ClanDashboardPage({
           </div>
         </section>
 
-        <section className="mt-8 grid gap-3 sm:grid-cols-3">
+        <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Button
+            asChild
+            variant="outline"
+            className="h-auto justify-start p-4"
+          >
+            <Link href={`/c/${clan.slug}/transactions`}>
+              <ReceiptText className="text-primary size-5" aria-hidden="true" />
+              Transactions
+            </Link>
+          </Button>
           <Button
             asChild
             variant="outline"

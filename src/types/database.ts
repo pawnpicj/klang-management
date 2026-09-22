@@ -732,7 +732,15 @@ export type Database = {
         Returns: string
       }
       archive_clan: { Args: { p_clan_id: string }; Returns: string }
+      can_access_evidence_object: {
+        Args: { p_name: string; p_write?: boolean }
+        Returns: boolean
+      }
       can_edit_transaction: {
+        Args: { p_clan_id: string; p_transaction_id: string }
+        Returns: boolean
+      }
+      can_manage_transaction_evidence: {
         Args: { p_clan_id: string; p_transaction_id: string }
         Returns: boolean
       }
@@ -748,6 +756,19 @@ export type Database = {
           p_window_seconds?: number
         }
         Returns: boolean
+      }
+      create_and_post_transaction: {
+        Args: {
+          p_clan_id: string
+          p_client_request_id: string
+          p_contributor_member_id?: string
+          p_from_warehouse_id?: string
+          p_items: Json
+          p_note?: string
+          p_to_warehouse_id?: string
+          p_transaction_type: string
+        }
+        Returns: string
       }
       create_asset: {
         Args: {
@@ -802,6 +823,17 @@ export type Database = {
       is_clan_leader: { Args: { p_clan_id: string }; Returns: boolean }
       is_clan_member: { Args: { p_clan_id: string }; Returns: boolean }
       post_transaction: { Args: { p_transaction_id: string }; Returns: string }
+      register_transaction_attachment: {
+        Args: {
+          p_clan_id: string
+          p_file_size: number
+          p_mime_type: string
+          p_original_name: string
+          p_storage_path: string
+          p_transaction_id: string
+        }
+        Returns: string
+      }
       remove_clan_member: {
         Args: { p_clan_id: string; p_member_id: string }
         Returns: string
@@ -856,6 +888,10 @@ export type Database = {
           p_name: string
           p_warehouse_id: string
         }
+        Returns: string
+      }
+      void_transaction: {
+        Args: { p_clan_id: string; p_transaction_id: string }
         Returns: string
       }
     }

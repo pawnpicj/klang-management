@@ -2,15 +2,15 @@
 
 ระบบจัดการคลัง Clan & Gang
 
-Implemented scope: **Phase 1 — Project Foundation** through **Phase 5 — Assets and Warehouses**.
-Users can create Clan/Gang spaces, maintain members and roles, configure Assets, and manage Warehouses with derived balances. Invite/join and offline-member account linking remain deferred by product decision.
+Implemented scope: **Phase 1 — Project Foundation** through **Phase 6 — Transactions**.
+Users can create Clan/Gang spaces, maintain members and roles, configure Assets and Warehouses, and post Deposit/Withdraw/Transfer transactions with evidence and Void/Reversal support. Invite/join and offline-member account linking remain deferred by product decision.
 
 - App: KLANG Management
 - Repository/package: `klang-management`
 - Supabase local project: `klang-management`
 - Stack: Next.js 16.3.5 App Router, React 19, strict TypeScript, Tailwind 4, shadcn-style Button/component configuration, Supabase SSR, Zod, Vitest, Playwright.
 - Node.js 24 or later. Exact dependencies are recorded in `package-lock.json`.
-- The repository is linked to the Supabase project `KlangManagement`; migrations through `20260922000500` are deployed.
+- The repository is linked to the Supabase project `KlangManagement`; migrations through `20260922000600` are deployed.
 
 ## Run the app
 
@@ -74,6 +74,9 @@ Permissions and default-role templates are migration-owned configuration, so dep
 - `warehouse_asset_balances`: security-invoker view derived from POSTED transaction items. Never update a balance.
 - Custom Role RPCs atomically maintain Role names and permission mappings while protecting system Roles and assigned Roles.
 - Phase 5 RPCs create/update/deactivate Assets and Warehouses, switch the default Warehouse atomically, and reject deactivation while a balance remains.
+- `create_and_post_transaction(...)` validates permission, direction, precision, balance and idempotency, then posts all lines atomically.
+- `void_transaction(...)` creates an auditable reversal record and removes the original transaction from derived balances only when the resulting balances remain valid.
+- Transaction evidence is stored in the private `transaction-evidence` bucket and registered in `attachments` after MIME, size, tenant and actor checks.
 - The Clan creation Server Action validates the session and Zod input, then calls `create_clan` in the authenticated user's RLS context.
 
-See [the Phase 1–2 schema and security handoff](docs/phase-1-2-handoff.md), [the Phase 3 authentication handoff](docs/phase-3-handoff.md), [the Phase 4A Multi-Clan handoff](docs/phase-4a-handoff.md), and [the Phase 5 handoff](docs/phase-5-handoff.md).
+See [the Phase 1–2 schema and security handoff](docs/phase-1-2-handoff.md), [the Phase 3 authentication handoff](docs/phase-3-handoff.md), [the Phase 4A Multi-Clan handoff](docs/phase-4a-handoff.md), [the Phase 5 handoff](docs/phase-5-handoff.md), and [the Phase 6 handoff](docs/phase-6-handoff.md).

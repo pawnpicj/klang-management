@@ -670,6 +670,137 @@ describe("schema, migrations and clan creation", () => {
       sql(alice, "select public.deactivate_warehouse($1,$2)", [clanA, secondA]),
     ).rejects.toMatchObject({ code: "23514" });
   });
+  it("creates and posts idempotent transactions through the Phase 6 API", async () => {
+    const requestId = randomUUID();
+    const items = JSON.stringify([
+      {
+        asset_id: assetA,
+        quantity: "12.5000",
+        unit_value: "1.25",
+        note: "Raid",
+      },
+    ]);
+    const transactionId = (
+      await sql(
+        alice,
+        "select public.create_and_post_transaction(p_clan_id=>$1,p_transaction_type=>'DEPOSIT',p_client_request_id=>$2,p_items=>$3::jsonb,p_note=>'Initial deposit') as id",
+        [clanA, requestId, items],
+      )
+    ).rows[0].id;
+    const retryId = (
+      await sql(
+        alice,
+        "select public.create_and_post_transaction(p_clan_id=>$1,p_transaction_type=>'DEPOSIT',p_client_request_id=>$2,p_items=>$3::jsonb,p_note=>'Initial deposit') as id",
+        [clanA, requestId, items],
+      )
+    ).rows[0].id;
+    expect(retryId).toBe(transactionId);
+    expect(await balance(mainA)).toBe("12.5000");
+    expect(
+      (
+        await admin.query(
+          "select status from public.transactions where id=$1",
+          [transactionId],
+        )
+      ).rows[0].status,
+    ).toBe("POSTED");
+
+    const transferId = (
+      await sql(
+        alice,
+        "select public.create_and_post_transaction(p_clan_id=>$1,p_transaction_type=>'TRANSFER',p_client_request_id=>$4,p_items=>$5::jsonb,p_from_warehouse_id=>$2,p_to_warehouse_id=>$3) as id",
+        [
+          clanA,
+          mainA,
+          secondA,
+          randomUUID(),
+          JSON.stringify([{ asset_id: assetA, quantity: "2.5000" }]),
+        ],
+      )
+    ).rows[0].id;
+    expect(transferId).toBeTruthy();
+    expect(await balance(mainA)).toBe("10.0000");
+    expect(await balance(secondA)).toBe("2.5000");
+
+    await expect(
+      sql(
+        member,
+        "select public.create_and_post_transaction(p_clan_id=>$1,p_transaction_type=>'DEPOSIT',p_client_request_id=>$2,p_items=>$3::jsonb)",
+        [clanA, randomUUID(), items],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(
+        alice,
+        "select public.create_and_post_transaction(p_clan_id=>$1,p_transaction_type=>'WITHDRAW',p_client_request_id=>$3,p_items=>$4::jsonb,p_from_warehouse_id=>$2)",
+        [
+          clanA,
+          secondA,
+          randomUUID(),
+          JSON.stringify([{ asset_id: assetA, quantity: "99" }]),
+        ],
+      ),
+    ).rejects.toMatchObject({ code: "23514" });
+  });
+  it("voids a posted transaction with an auditable reversal and registers evidence", async () => {
+    const transactionId = (
+      await sql(
+        alice,
+        "select public.create_and_post_transaction(p_clan_id=>$1,p_transaction_type=>'DEPOSIT',p_client_request_id=>$2,p_items=>$3::jsonb) as id",
+        [
+          clanA,
+          randomUUID(),
+          JSON.stringify([{ asset_id: assetA, quantity: "5" }]),
+        ],
+      )
+    ).rows[0].id;
+    const path = `${clanA}/${transactionId}/${randomUUID()}.png`;
+    await admin.query(
+      "insert into storage.objects(bucket_id,name,owner_id) values('transaction-evidence',$1,$2)",
+      [path, alice],
+    );
+    const attachmentId = (
+      await sql(
+        alice,
+        "select public.register_transaction_attachment($1,$2,$3,'evidence.png','image/png',1024) as id",
+        [clanA, transactionId, path],
+      )
+    ).rows[0].id;
+    expect(attachmentId).toBeTruthy();
+    await expect(
+      sql(
+        member,
+        "select public.register_transaction_attachment($1,$2,$3,'fake.png','image/png',100)",
+        [clanA, transactionId, `${clanA}/${transactionId}/fake.png`],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+
+    const reversalId = (
+      await sql(alice, "select public.void_transaction($1,$2) as id", [
+        clanA,
+        transactionId,
+      ])
+    ).rows[0].id;
+    expect(
+      (
+        await admin.query(
+          "select status,transaction_type,reversal_transaction_id from public.transactions where id=$1",
+          [reversalId],
+        )
+      ).rows[0],
+    ).toEqual({
+      status: "VOIDED",
+      transaction_type: "REVERSAL",
+      reversal_transaction_id: transactionId,
+    });
+    expect(await balance(mainA)).toBe("0");
+    await expect(
+      sql(alice, "select public.void_transaction($1,$2)", [
+        clanA,
+        transactionId,
+      ]),
+    ).rejects.toMatchObject({ code: "23514" });
+  });
   it("lets managers edit and archive their Clan but denies ordinary members", async () => {
     await sql(
       alice,
