@@ -15,14 +15,24 @@ function PendingButton({
   children,
   pendingText,
   variant = "default",
+  size = "default",
+  className,
 }: {
   children: React.ReactNode;
   pendingText: string;
   variant?: "default" | "outline" | "warning" | "destructive";
+  size?: "default" | "sm";
+  className?: string;
 }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant={variant} disabled={pending}>
+    <Button
+      type="submit"
+      variant={variant}
+      size={size}
+      className={className}
+      disabled={pending}
+    >
       {pending ? pendingText : children}
     </Button>
   );
@@ -43,7 +53,12 @@ export function ArchiveClanButton({ clanSlug }: { clanSlug: string }) {
       }}
     >
       <input type="hidden" name="clanSlug" value={clanSlug} />
-      <PendingButton variant="destructive" pendingText="กำลังลบ…">
+      <PendingButton
+        variant="destructive"
+        size="sm"
+        className="w-14"
+        pendingText="กำลังลบ…"
+      >
         ลบ
       </PendingButton>
     </form>

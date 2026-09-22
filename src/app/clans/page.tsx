@@ -166,14 +166,19 @@ export default async function ClansPage({
                     </div>
                   </dl>
                   <div className="mt-5 flex flex-wrap gap-2">
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" className="w-14">
                       <Link href={`/c/${membership.clan.slug}/dashboard`}>
                         เปิด
                       </Link>
                     </Button>
                     {canManage && (
                       <>
-                        <Button asChild size="sm" variant="warning">
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="warning"
+                          className="w-14"
+                        >
                           <Link href={`/c/${membership.clan.slug}/settings`}>
                             แก้ไข
                           </Link>
