@@ -1,0 +1,2 @@
+-- Permission and default-role templates are migration-owned configuration.
+-- No fake tenants, users, assets or balances are inserted into application data.
