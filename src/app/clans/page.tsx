@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Swords, UsersRound } from "lucide-react";
 import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
 import { ArchiveClanButton } from "@/components/clan/clan-management-forms";
@@ -29,6 +30,26 @@ export default async function ClansPage({
 
   if (error) {
     console.error("Clan memberships could not be loaded", error.code);
+  }
+
+  const memberCounts = new Map<string, number>();
+  if (memberships?.length) {
+    const clanIds = memberships.map((membership) => membership.clan.id);
+    const { data: memberRows, error: memberCountError } = await supabase
+      .from("clan_members")
+      .select("clan_id")
+      .in("clan_id", clanIds)
+      .eq("status", "ACTIVE");
+    if (memberCountError) {
+      console.error(
+        "Clan member counts could not be loaded",
+        memberCountError.code,
+      );
+    } else {
+      memberRows?.forEach(({ clan_id }) => {
+        memberCounts.set(clan_id, (memberCounts.get(clan_id) ?? 0) + 1);
+      });
+    }
   }
 
   return (
@@ -80,22 +101,42 @@ export default async function ClansPage({
               const canManage = ["Manager", "Leader"].includes(
                 membership.role.name,
               );
+              const isClan = membership.clan.type === "CLAN";
+              const ClanIcon = isClan ? UsersRound : Swords;
               return (
                 <article
                   key={membership.clan.id}
                   className="border-input rounded-xl border p-5"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <h2 className="text-lg font-semibold">
-                      <Link
-                        href={`/c/${membership.clan.slug}/dashboard`}
-                        className="hover:text-primary focus-visible:ring-ring rounded-sm focus-visible:ring-2 focus-visible:outline-none"
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span
+                        className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${
+                          isClan
+                            ? "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
+                            : "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
+                        }`}
+                        aria-hidden="true"
                       >
-                        {membership.clan.name}
-                      </Link>
-                    </h2>
-                    <span className="bg-muted rounded-full px-2 py-1 text-xs font-medium">
-                      {membership.clan.type === "CLAN" ? "Clan" : "Gang"}
+                        <ClanIcon className="size-5" strokeWidth={2.25} />
+                      </span>
+                      <h2 className="truncate text-lg font-semibold">
+                        <Link
+                          href={`/c/${membership.clan.slug}/dashboard`}
+                          className="hover:text-primary focus-visible:ring-ring rounded-sm focus-visible:ring-2 focus-visible:outline-none"
+                        >
+                          {membership.clan.name}
+                        </Link>
+                      </h2>
+                    </div>
+                    <span
+                      className={`rounded-full px-2 py-1 text-xs font-medium ${
+                        isClan
+                          ? "bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
+                          : "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
+                      }`}
+                    >
+                      {isClan ? "Clan" : "Gang"}
                     </span>
                   </div>
                   <dl className="text-muted-foreground mt-5 space-y-2 text-sm">
@@ -109,6 +150,18 @@ export default async function ClansPage({
                       <dt>บทบาท</dt>
                       <dd className="text-foreground font-medium">
                         {membership.role.name}
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="flex items-center gap-2">
+                        <UsersRound
+                          className="text-primary size-4"
+                          aria-hidden="true"
+                        />
+                        สมาชิก
+                      </dt>
+                      <dd className="text-foreground font-medium">
+                        {memberCounts.get(membership.clan.id) ?? 0} คน
                       </dd>
                     </div>
                   </dl>
