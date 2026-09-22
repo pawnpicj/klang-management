@@ -18,7 +18,7 @@ function PendingButton({
 }: {
   children: React.ReactNode;
   pendingText: string;
-  variant?: "default" | "outline";
+  variant?: "default" | "outline" | "warning" | "destructive";
 }) {
   const { pending } = useFormStatus();
   return (
@@ -43,7 +43,7 @@ export function ArchiveClanButton({ clanSlug }: { clanSlug: string }) {
       }}
     >
       <input type="hidden" name="clanSlug" value={clanSlug} />
-      <PendingButton variant="outline" pendingText="กำลังลบ…">
+      <PendingButton variant="destructive" pendingText="กำลังลบ…">
         ลบ
       </PendingButton>
     </form>
@@ -131,7 +131,7 @@ export function MemberRowActions({
           maxLength={100}
           required
         />
-        <PendingButton variant="outline" pendingText="กำลังบันทึก…">
+        <PendingButton variant="warning" pendingText="กำลังบันทึก…">
           แก้ไขชื่อ
         </PendingButton>
       </form>
@@ -151,7 +151,7 @@ export function MemberRowActions({
       >
         <input type="hidden" name="clanSlug" value={clanSlug} />
         <input type="hidden" name="memberId" value={memberId} />
-        <PendingButton variant="outline" pendingText="กำลังนำออก…">
+        <PendingButton variant="destructive" pendingText="กำลังนำออก…">
           นำสมาชิกออก
         </PendingButton>
       </form>

@@ -173,7 +173,7 @@ export default async function ClansPage({
                     </Button>
                     {canManage && (
                       <>
-                        <Button asChild size="sm" variant="outline">
+                        <Button asChild size="sm" variant="warning">
                           <Link href={`/c/${membership.clan.slug}/settings`}>
                             แก้ไข
                           </Link>
