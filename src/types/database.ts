@@ -179,13 +179,6 @@ export type Database = {
             referencedRelation: "clans"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       clan_invites: {
@@ -259,7 +252,7 @@ export type Database = {
           role_id: string
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           character_name: string
@@ -270,7 +263,7 @@ export type Database = {
           role_id: string
           status?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           character_name?: string
@@ -281,7 +274,7 @@ export type Database = {
           role_id?: string
           status?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -734,6 +727,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_clan_member: {
+        Args: { p_character_name: string; p_clan_id: string }
+        Returns: string
+      }
       can_edit_transaction: {
         Args: { p_clan_id: string; p_transaction_id: string }
         Returns: boolean

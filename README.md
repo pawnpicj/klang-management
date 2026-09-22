@@ -2,8 +2,8 @@
 
 ระบบจัดการคลัง Clan & Gang
 
-Implemented scope: **Phase 1 — Project Foundation**, **Phase 2 — Database and Security**, **Phase 3 — Authentication**, and the first **Phase 4 — Multi-Clan** checkpoint.
-Invite/join, member management, custom roles, and Phase 5 or later business flows have not started.
+Implemented scope: **Phase 1 — Project Foundation**, **Phase 2 — Database and Security**, **Phase 3 — Authentication**, and the first **Phase 4 — Multi-Clan** checkpoints.
+Users can create Clan/Gang spaces and maintain a roster whose members do not need application accounts. Invite/join, account linking, role changes, custom roles, and Phase 5 or later business flows have not started.
 
 - App: KLANG Management
 - Repository/package: `klang-management`

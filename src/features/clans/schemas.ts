@@ -24,3 +24,12 @@ export const createClanSchema = z.object({
     .min(1, "กรุณากรอกชื่อตัวละคร")
     .max(100, "ชื่อตัวละครต้องไม่เกิน 100 ตัวอักษร"),
 });
+
+export const addClanMemberSchema = z.object({
+  clanSlug: clanSlugSchema,
+  characterName: z
+    .string()
+    .trim()
+    .min(1, "กรุณากรอกชื่อตัวละคร")
+    .max(100, "ชื่อตัวละครต้องไม่เกิน 100 ตัวอักษร"),
+});

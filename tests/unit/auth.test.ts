@@ -9,7 +9,10 @@ import {
   getAvatarValidationError,
   hasValidAvatarSignature,
 } from "@/features/auth/avatar";
-import { createClanSchema } from "@/features/clans/schemas";
+import {
+  addClanMemberSchema,
+  createClanSchema,
+} from "@/features/clans/schemas";
 
 describe("authentication validation", () => {
   it("accepts the documented username format case-insensitively", () => {
@@ -108,5 +111,17 @@ describe("clan validation", () => {
         characterName: "Leader",
       }).success,
     ).toBe(false);
+  });
+
+  it("validates a roster member without requiring an account identifier", () => {
+    const result = addClanMemberSchema.safeParse({
+      clanSlug: "black-dragon",
+      characterName: " Offline Player ",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.characterName).toBe("Offline Player");
+      expect(Object.keys(result.data)).toEqual(["clanSlug", "characterName"]);
+    }
   });
 });

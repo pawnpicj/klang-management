@@ -320,6 +320,48 @@ describe("schema, migrations and clan creation", () => {
       ),
     ).rejects.toMatchObject({ code: "42501" });
   });
+  it("lets managers add audited roster members without accounts", async () => {
+    const offlineId = (
+      await sql(
+        alice,
+        "select public.add_clan_member($1,'Offline Player') as id",
+        [clanA],
+      )
+    ).rows[0].id;
+    const offline = (
+      await admin.query(
+        `select m.user_id,m.character_name,m.status,r.name::text as role
+         from public.clan_members m
+         join public.clan_roles r on r.clan_id=m.clan_id and r.id=m.role_id
+         where m.id=$1`,
+        [offlineId],
+      )
+    ).rows[0];
+    expect(offline).toEqual({
+      user_id: null,
+      character_name: "Offline Player",
+      status: "ACTIVE",
+      role: "Member",
+    });
+    expect(
+      (
+        await admin.query(
+          "select * from public.audit_logs where clan_id=$1 and entity_type='clan_members' and entity_id=$2 and user_id=$3",
+          [clanA, offlineId, alice],
+        )
+      ).rowCount,
+    ).toBe(1);
+
+    await expect(
+      sql(alice, "select public.add_clan_member($1,'offline player')", [clanA]),
+    ).rejects.toMatchObject({ code: "23505" });
+    await expect(
+      sql(member, "select public.add_clan_member($1,'No Permission')", [clanA]),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(alice, "select public.add_clan_member($1,'Other Clan')", [clanB]),
+    ).rejects.toMatchObject({ code: "42501" });
+  });
 });
 
 describe("actual PostgreSQL RLS isolation", () => {
@@ -347,6 +389,14 @@ describe("actual PostgreSQL RLS isolation", () => {
     ).rejects.toMatchObject({ code: "42501" });
     await expect(
       sql(null, "select public.create_clan('X','x','CLAN','X')", [], "anon"),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(
+        null,
+        "select public.add_clan_member($1,'Anonymous')",
+        [clanA],
+        "anon",
+      ),
     ).rejects.toMatchObject({ code: "42501" });
     await expect(
       sql(null, "select public.is_clan_member($1)", [clanA], "anon"),
