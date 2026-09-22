@@ -1,5 +1,6 @@
 "use client";
 
+import { Pencil, UserMinus } from "lucide-react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
@@ -17,12 +18,14 @@ function PendingButton({
   variant = "default",
   size = "default",
   className,
+  title,
 }: {
   children: React.ReactNode;
   pendingText: string;
   variant?: "default" | "outline" | "warning" | "destructive";
   size?: "default" | "sm";
   className?: string;
+  title?: string;
 }) {
   const { pending } = useFormStatus();
   return (
@@ -31,6 +34,7 @@ function PendingButton({
       variant={variant}
       size={size}
       className={className}
+      title={title}
       disabled={pending}
     >
       {pending ? pendingText : children}
@@ -131,8 +135,8 @@ export function MemberRowActions({
     initialClanState,
   );
   return (
-    <div className="mt-3">
-      <form action={action} className="flex flex-col gap-2 sm:flex-row">
+    <div className="relative flex items-end gap-2">
+      <form action={action} className="flex min-w-0 flex-1 gap-2">
         <input type="hidden" name="clanSlug" value={clanSlug} />
         <input type="hidden" name="memberId" value={memberId} />
         <label className="sr-only" htmlFor={`member-${memberId}`}>
@@ -146,18 +150,19 @@ export function MemberRowActions({
           maxLength={100}
           required
         />
-        <PendingButton variant="warning" pendingText="กำลังบันทึก…">
-          แก้ไขชื่อ
+        <PendingButton
+          variant="warning"
+          size="sm"
+          className="size-9 shrink-0 p-0"
+          title="แก้ไขชื่อ"
+          pendingText="กำลังบันทึก…"
+        >
+          <Pencil className="size-4" aria-hidden="true" />
+          <span className="sr-only">แก้ไขชื่อ</span>
         </PendingButton>
       </form>
-      {state.message && (
-        <p className="mt-2 text-sm text-red-600" role="alert">
-          {state.message}
-        </p>
-      )}
       <form
         action={removeClanMemberAction}
-        className="mt-2"
         onSubmit={(event) => {
           if (!window.confirm(`ยืนยันนำ ${characterName} ออกจาก Clan/Gang?`)) {
             event.preventDefault();
@@ -166,10 +171,22 @@ export function MemberRowActions({
       >
         <input type="hidden" name="clanSlug" value={clanSlug} />
         <input type="hidden" name="memberId" value={memberId} />
-        <PendingButton variant="destructive" pendingText="กำลังนำออก…">
-          นำสมาชิกออก
+        <PendingButton
+          variant="destructive"
+          size="sm"
+          className="size-9 shrink-0 p-0"
+          title="นำสมาชิกออก"
+          pendingText="กำลังนำออก…"
+        >
+          <UserMinus className="size-4" aria-hidden="true" />
+          <span className="sr-only">นำสมาชิกออก</span>
         </PendingButton>
       </form>
+      {state.message && (
+        <p className="absolute top-full mt-2 text-sm text-red-600" role="alert">
+          {state.message}
+        </p>
+      )}
     </div>
   );
 }

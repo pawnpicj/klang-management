@@ -108,9 +108,6 @@ export default async function ClanMembersPage({
           {canManage ? (
             <section className="border-input rounded-xl border p-5 sm:p-6">
               <h2 className="text-lg font-semibold">เพิ่มสมาชิก</h2>
-              <p className="text-muted-foreground mt-2 text-sm leading-6">
-                สมาชิกไม่จำเป็นต้องสมัครบัญชี และจะได้รับ Role Member อัตโนมัติ
-              </p>
               <div className="mt-5 max-w-xl">
                 <AddMemberForm clanSlug={clan.slug} />
               </div>

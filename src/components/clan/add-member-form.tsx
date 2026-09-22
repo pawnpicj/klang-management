@@ -20,30 +20,35 @@ export function AddMemberForm({ clanSlug }: { clanSlug: string }) {
   const error = state.fieldErrors?.characterName?.[0];
 
   return (
-    <form action={action} className="space-y-4">
+    <form
+      action={action}
+      className="flex flex-col items-start gap-3 sm:flex-row sm:items-end"
+    >
       <input type="hidden" name="clanSlug" value={clanSlug} />
-      <label className="block text-sm font-medium">
-        ชื่อตัวละคร
-        <input
-          className="border-input bg-background focus-visible:ring-ring mt-1 h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
-          name="characterName"
-          maxLength={100}
-          required
-          autoComplete="off"
-          aria-invalid={Boolean(error)}
-        />
-        {error && (
-          <span className="mt-1 block text-sm text-red-600">{error}</span>
+      <div className="w-full flex-1">
+        <label className="block text-sm font-medium">
+          ชื่อตัวละคร
+          <input
+            className="border-input bg-background focus-visible:ring-ring mt-1 h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
+            name="characterName"
+            maxLength={100}
+            required
+            autoComplete="off"
+            aria-invalid={Boolean(error)}
+          />
+          {error && (
+            <span className="mt-1 block text-sm text-red-600">{error}</span>
+          )}
+        </label>
+        {state.message && (
+          <p
+            className="mt-2 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
+            role="alert"
+          >
+            {state.message}
+          </p>
         )}
-      </label>
-      {state.message && (
-        <p
-          className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
-          role="alert"
-        >
-          {state.message}
-        </p>
-      )}
+      </div>
       <SubmitButton />
     </form>
   );
