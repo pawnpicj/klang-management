@@ -749,6 +749,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_asset: {
+        Args: {
+          p_allow_negative?: boolean
+          p_asset_type: string
+          p_clan_id: string
+          p_code: string
+          p_decimal_places?: number
+          p_image_url?: string
+          p_name: string
+          p_unit: string
+        }
+        Returns: string
+      }
       create_clan: {
         Args: {
           p_character_name: string
@@ -756,6 +769,30 @@ export type Database = {
           p_slug: string
           p_type: string
         }
+        Returns: string
+      }
+      create_custom_role: {
+        Args: {
+          p_clan_id: string
+          p_name: string
+          p_permission_codes?: string[]
+        }
+        Returns: string
+      }
+      create_warehouse: {
+        Args: { p_clan_id: string; p_description?: string; p_name: string }
+        Returns: string
+      }
+      deactivate_asset: {
+        Args: { p_asset_id: string; p_clan_id: string }
+        Returns: string
+      }
+      deactivate_warehouse: {
+        Args: { p_clan_id: string; p_warehouse_id: string }
+        Returns: string
+      }
+      delete_custom_role: {
+        Args: { p_clan_id: string; p_role_id: string }
         Returns: string
       }
       has_clan_permission: {
@@ -774,6 +811,19 @@ export type Database = {
         Returns: undefined
       }
       resolve_login_email: { Args: { p_username: string }; Returns: string }
+      set_default_warehouse: {
+        Args: { p_clan_id: string; p_warehouse_id: string }
+        Returns: string
+      }
+      update_asset_details: {
+        Args: {
+          p_asset_id: string
+          p_clan_id: string
+          p_image_url?: string
+          p_name: string
+        }
+        Returns: string
+      }
       update_clan_details: {
         Args: { p_clan_id: string; p_name: string; p_type: string }
         Returns: string
@@ -788,6 +838,24 @@ export type Database = {
       }
       update_clan_member_role: {
         Args: { p_clan_id: string; p_member_id: string; p_role_id: string }
+        Returns: string
+      }
+      update_custom_role: {
+        Args: {
+          p_clan_id: string
+          p_name: string
+          p_permission_codes?: string[]
+          p_role_id: string
+        }
+        Returns: string
+      }
+      update_warehouse_details: {
+        Args: {
+          p_clan_id: string
+          p_description?: string
+          p_name: string
+          p_warehouse_id: string
+        }
         Returns: string
       }
     }

@@ -2,15 +2,15 @@
 
 ระบบจัดการคลัง Clan & Gang
 
-Implemented scope: **Phase 1 — Project Foundation**, **Phase 2 — Database and Security**, **Phase 3 — Authentication**, and the first **Phase 4 — Multi-Clan** checkpoints.
-Users can create Clan/Gang spaces and maintain a roster whose members do not need application accounts. Invite/join, account linking, role changes, custom roles, and Phase 5 or later business flows have not started.
+Implemented scope: **Phase 1 — Project Foundation** through **Phase 5 — Assets and Warehouses**.
+Users can create Clan/Gang spaces, maintain members and roles, configure Assets, and manage Warehouses with derived balances. Invite/join and offline-member account linking remain deferred by product decision.
 
 - App: KLANG Management
 - Repository/package: `klang-management`
 - Supabase local project: `klang-management`
 - Stack: Next.js 16.3.5 App Router, React 19, strict TypeScript, Tailwind 4, shadcn-style Button/component configuration, Supabase SSR, Zod, Vitest, Playwright.
 - Node.js 24 or later. Exact dependencies are recorded in `package-lock.json`.
-- No cloud database, GitHub remote, or deployment has been provisioned.
+- The repository is linked to the Supabase project `KlangManagement`; migrations through `20260922000500` are deployed.
 
 ## Run the app
 
@@ -72,6 +72,8 @@ Permissions and default-role templates are migration-owned configuration, so dep
 - `create_clan(p_name, p_slug, p_type, p_character_name)`: requires an authenticated active profile and atomically creates a clan, six system roles, their permissions, the creator's Manager membership, and Main Warehouse.
 - `post_transaction(p_transaction_id)`: verifies current actor, tenant, permission, lifecycle, asset precision, warehouse direction/default/activation, contributor, and aggregated balance; posts atomically and supports retries.
 - `warehouse_asset_balances`: security-invoker view derived from POSTED transaction items. Never update a balance.
+- Custom Role RPCs atomically maintain Role names and permission mappings while protecting system Roles and assigned Roles.
+- Phase 5 RPCs create/update/deactivate Assets and Warehouses, switch the default Warehouse atomically, and reject deactivation while a balance remains.
 - The Clan creation Server Action validates the session and Zod input, then calls `create_clan` in the authenticated user's RLS context.
 
-See [the Phase 1–2 schema and security handoff](docs/phase-1-2-handoff.md), [the Phase 3 authentication handoff](docs/phase-3-handoff.md), and [the Phase 4A Multi-Clan handoff](docs/phase-4a-handoff.md).
+See [the Phase 1–2 schema and security handoff](docs/phase-1-2-handoff.md), [the Phase 3 authentication handoff](docs/phase-3-handoff.md), [the Phase 4A Multi-Clan handoff](docs/phase-4a-handoff.md), and [the Phase 5 handoff](docs/phase-5-handoff.md).

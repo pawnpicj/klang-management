@@ -63,6 +63,13 @@ test("protected Clan pages redirect to login without a session", async ({
 
   await page.goto("/c/private-clan/settings");
   await expect(page).toHaveURL(/\/login\?next=%2Fc%2Fprivate-clan%2Fsettings$/);
+
+  for (const route of ["roles", "assets", "warehouses"]) {
+    await page.goto(`/c/private-clan/${route}`);
+    await expect(page).toHaveURL(
+      new RegExp(`/login\\?next=%2Fc%2Fprivate-clan%2F${route}$`),
+    );
+  }
 });
 test("not found has recovery link", async ({ page }) => {
   expect((await page.goto("/does-not-exist"))?.status()).toBe(404);

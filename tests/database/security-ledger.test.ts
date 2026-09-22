@@ -488,6 +488,188 @@ describe("schema, migrations and clan creation", () => {
     ]);
     expect(await roleInClan(alice)).toBe("Member");
   });
+  it("manages custom roles and permissions atomically", async () => {
+    const customRole = (
+      await sql(
+        alice,
+        "select public.create_custom_role($1,'Collector',array['asset.view','transaction.deposit']) as id",
+        [clanA],
+      )
+    ).rows[0].id;
+    expect(
+      (
+        await admin.query(
+          "select permission_code from public.role_permissions where clan_id=$1 and role_id=$2 order by permission_code",
+          [clanA, customRole],
+        )
+      ).rows.map((row) => row.permission_code),
+    ).toEqual(["asset.view", "transaction.deposit"]);
+
+    await sql(
+      alice,
+      "select public.update_custom_role($1,$2,'Senior Collector',array['asset.view','warehouse.view'])",
+      [clanA, customRole],
+    );
+    expect(
+      (
+        await admin.query(
+          "select name::text as name from public.clan_roles where id=$1",
+          [customRole],
+        )
+      ).rows[0].name,
+    ).toBe("Senior Collector");
+    await expect(
+      sql(
+        member,
+        "select public.create_custom_role($1,'Unauthorized',array[]::text[])",
+        [clanA],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(
+        alice,
+        "select public.create_custom_role($1,'Invalid',array['missing.permission'])",
+        [clanA],
+      ),
+    ).rejects.toMatchObject({ code: "22023" });
+
+    const systemRole = (
+      await admin.query(
+        "select id from public.clan_roles where clan_id=$1 and name='Member'",
+        [clanA],
+      )
+    ).rows[0].id;
+    await expect(
+      sql(
+        alice,
+        "select public.update_custom_role($1,$2,'Changed',array[]::text[])",
+        [clanA, systemRole],
+      ),
+    ).rejects.toMatchObject({ code: "P0002" });
+
+    const memberId = (
+      await admin.query(
+        "select id from public.clan_members where clan_id=$1 and user_id=$2",
+        [clanA, member],
+      )
+    ).rows[0].id;
+    await sql(alice, "select public.update_clan_member_role($1,$2,$3)", [
+      clanA,
+      memberId,
+      customRole,
+    ]);
+    await expect(
+      sql(alice, "select public.delete_custom_role($1,$2)", [
+        clanA,
+        customRole,
+      ]),
+    ).rejects.toMatchObject({ code: "23503" });
+    await sql(alice, "select public.update_clan_member_role($1,$2,$3)", [
+      clanA,
+      memberId,
+      systemRole,
+    ]);
+    await sql(alice, "select public.delete_custom_role($1,$2)", [
+      clanA,
+      customRole,
+    ]);
+    expect(
+      (
+        await admin.query("select id from public.clan_roles where id=$1", [
+          customRole,
+        ])
+      ).rowCount,
+    ).toBe(0);
+  });
+  it("manages Asset and Warehouse lifecycle through tenant-scoped APIs", async () => {
+    const warehouseId = (
+      await sql(
+        alice,
+        "select public.create_warehouse($1,'Guild Vault','Rare items') as id",
+        [clanA],
+      )
+    ).rows[0].id;
+    await sql(
+      alice,
+      "select public.update_warehouse_details($1,$2,'Guild Reserve','Updated')",
+      [clanA, warehouseId],
+    );
+    await sql(alice, "select public.set_default_warehouse($1,$2)", [
+      clanA,
+      warehouseId,
+    ]);
+    expect(
+      (
+        await admin.query(
+          "select name::text as name,is_default from public.warehouses where id=$1",
+          [warehouseId],
+        )
+      ).rows[0],
+    ).toEqual({ name: "Guild Reserve", is_default: true });
+    await expect(
+      sql(alice, "select public.deactivate_warehouse($1,$2)", [
+        clanA,
+        warehouseId,
+      ]),
+    ).rejects.toMatchObject({ code: "23514" });
+    await sql(alice, "select public.set_default_warehouse($1,$2)", [
+      clanA,
+      mainA,
+    ]);
+    await sql(alice, "select public.deactivate_warehouse($1,$2)", [
+      clanA,
+      warehouseId,
+    ]);
+
+    const assetId = (
+      await sql(
+        alice,
+        "select public.create_asset($1,'GEM','Gem','ITEM','piece',0,false,null) as id",
+        [clanA],
+      )
+    ).rows[0].id;
+    await sql(
+      alice,
+      "select public.update_asset_details($1,$2,'Rare Gem','https://example.test/gem.png')",
+      [clanA, assetId],
+    );
+    await sql(alice, "select public.deactivate_asset($1,$2)", [clanA, assetId]);
+    expect(
+      (
+        await admin.query(
+          "select name::text as name,is_active from public.assets where id=$1",
+          [assetId],
+        )
+      ).rows[0],
+    ).toEqual({ name: "Rare Gem", is_active: false });
+
+    await expect(
+      sql(member, "select public.create_warehouse($1,'No Access',null)", [
+        clanA,
+      ]),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(
+        member,
+        "select public.create_asset($1,'NOPE','No Access','ITEM','piece',0,false,null)",
+        [clanA],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+  });
+  it("prevents deactivating Assets and Warehouses with balances", async () => {
+    await deposit("10");
+    await expect(
+      sql(alice, "select public.deactivate_asset($1,$2)", [clanA, assetA]),
+    ).rejects.toMatchObject({ code: "23514" });
+
+    const transferId = await draft(alice, "TRANSFER", [
+      { quantity: "5", from: mainA, to: secondA },
+    ]);
+    await post(alice, transferId);
+    await expect(
+      sql(alice, "select public.deactivate_warehouse($1,$2)", [clanA, secondA]),
+    ).rejects.toMatchObject({ code: "23514" });
+  });
   it("lets managers edit and archive their Clan but denies ordinary members", async () => {
     await sql(
       alice,

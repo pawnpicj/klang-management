@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { Settings2, UsersRound } from "lucide-react";
+import {
+  Package,
+  Settings2,
+  ShieldCheck,
+  UsersRound,
+  Warehouse,
+} from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
 import { Button } from "@/components/ui/button";
@@ -121,6 +127,39 @@ export default async function ClanDashboardPage({
               {warehouse?.name ?? "ไม่พบข้อมูล"}
             </p>
           </div>
+        </section>
+
+        <section className="mt-8 grid gap-3 sm:grid-cols-3">
+          <Button
+            asChild
+            variant="outline"
+            className="h-auto justify-start p-4"
+          >
+            <Link href={`/c/${clan.slug}/roles`}>
+              <ShieldCheck className="text-primary size-5" aria-hidden="true" />{" "}
+              Roles และ Permissions
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="h-auto justify-start p-4"
+          >
+            <Link href={`/c/${clan.slug}/assets`}>
+              <Package className="text-primary size-5" aria-hidden="true" />{" "}
+              Assets
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="h-auto justify-start p-4"
+          >
+            <Link href={`/c/${clan.slug}/warehouses`}>
+              <Warehouse className="text-primary size-5" aria-hidden="true" />{" "}
+              Warehouses
+            </Link>
+          </Button>
         </section>
 
         <section className="border-input mt-8 overflow-hidden rounded-xl border">
