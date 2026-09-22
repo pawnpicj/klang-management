@@ -9,6 +9,7 @@ import {
   getAvatarValidationError,
   hasValidAvatarSignature,
 } from "@/features/auth/avatar";
+import { createClanSchema } from "@/features/clans/schemas";
 
 describe("authentication validation", () => {
   it("accepts the documented username format case-insensitively", () => {
@@ -79,5 +80,33 @@ describe("safe post-auth redirects", () => {
     expect(safeNextPath("//evil.example")).toBe("/profile");
     expect(safeNextPath("/\\evil.example")).toBe("/profile");
     expect(safeNextPath("https://evil.example")).toBe("/profile");
+  });
+});
+
+describe("clan validation", () => {
+  it("accepts a valid Clan and normalizes surrounding whitespace", () => {
+    const result = createClanSchema.safeParse({
+      name: " Black Dragon ",
+      slug: "black-dragon",
+      type: "CLAN",
+      characterName: " Leader One ",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.name).toBe("Black Dragon");
+      expect(result.data.characterName).toBe("Leader One");
+    }
+  });
+
+  it("rejects unsafe slugs and unsupported types", () => {
+    expect(
+      createClanSchema.safeParse({
+        name: "Black Dragon",
+        slug: "Black Dragon",
+        type: "GROUP",
+        characterName: "Leader",
+      }).success,
+    ).toBe(false);
   });
 });

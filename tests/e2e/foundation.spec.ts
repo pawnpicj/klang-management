@@ -46,6 +46,18 @@ test("protected profile redirects to login without a session", async ({
     page.getByRole("heading", { name: "เข้าสู่ระบบ" }),
   ).toBeVisible();
 });
+
+test("protected Clan pages redirect to login without a session", async ({
+  page,
+}) => {
+  await page.goto("/clans");
+  await expect(page).toHaveURL(/\/login\?next=%2Fclans$/);
+
+  await page.goto("/c/private-clan/dashboard");
+  await expect(page).toHaveURL(
+    /\/login\?next=%2Fc%2Fprivate-clan%2Fdashboard$/,
+  );
+});
 test("not found has recovery link", async ({ page }) => {
   expect((await page.goto("/does-not-exist"))?.status()).toBe(404);
   await page.getByRole("link", { name: "กลับหน้าหลัก" }).click();

@@ -2,8 +2,8 @@
 
 ระบบจัดการคลัง Clan & Gang
 
-Implemented scope: **Phase 1 — Project Foundation**, **Phase 2 — Database and Security**, and **Phase 3 — Authentication**.
-Phase 4 and later business flows have not started.
+Implemented scope: **Phase 1 — Project Foundation**, **Phase 2 — Database and Security**, **Phase 3 — Authentication**, and the first **Phase 4 — Multi-Clan** checkpoint.
+Invite/join, member management, custom roles, and Phase 5 or later business flows have not started.
 
 - App: KLANG Management
 - Repository/package: `klang-management`
@@ -27,7 +27,7 @@ Copy-Item .env.example .env.local
 
 Replace every placeholder in `.env.local`. Use the publishable/legacy anon key in the public variable and the secret/legacy service-role key only in the server variable. Set `AUTH_RATE_LIMIT_SECRET` to a private random value with at least 32 characters.
 
-The browser client uses public configuration. The server and admin modules import `server-only`. `src/proxy.ts` refreshes Supabase SSR cookies and protects `/profile` and `/reset-password`. The service-role client is limited to username resolution and the shared login limiter; tenant writes still use the authenticated user's RLS context.
+The browser client uses public configuration. The server and admin modules import `server-only`. `src/proxy.ts` refreshes Supabase SSR cookies and protects `/profile`, `/clans`, `/c/*`, and `/reset-password`. The service-role client is limited to username resolution and the shared login limiter; tenant writes still use the authenticated user's RLS context.
 
 ## Checks
 
@@ -72,6 +72,6 @@ Permissions and default-role templates are migration-owned configuration, so dep
 - `create_clan(p_name, p_slug, p_type, p_character_name)`: requires an authenticated active profile and atomically creates a clan, five system roles, their permissions, the creator's Leader membership, and Main Warehouse.
 - `post_transaction(p_transaction_id)`: verifies current actor, tenant, permission, lifecycle, asset precision, warehouse direction/default/activation, contributor, and aggregated balance; posts atomically and supports retries.
 - `warehouse_asset_balances`: security-invoker view derived from POSTED transaction items. Never update a balance.
-- Application Server Actions and screens using these APIs belong to their later phases. They must revalidate session/input/permissions before invoking the database functions.
+- The Clan creation Server Action validates the session and Zod input, then calls `create_clan` in the authenticated user's RLS context.
 
-See [the Phase 1–2 schema and security handoff](docs/phase-1-2-handoff.md) and [the Phase 3 authentication handoff](docs/phase-3-handoff.md).
+See [the Phase 1–2 schema and security handoff](docs/phase-1-2-handoff.md), [the Phase 3 authentication handoff](docs/phase-3-handoff.md), and [the Phase 4A Multi-Clan handoff](docs/phase-4a-handoff.md).

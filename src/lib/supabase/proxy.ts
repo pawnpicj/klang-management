@@ -30,7 +30,10 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const userId = typeof data?.claims?.sub === "string" ? data.claims.sub : null;
   const pathname = request.nextUrl.pathname;
-  const needsUser = pathname.startsWith("/profile");
+  const needsUser =
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/clans") ||
+    pathname.startsWith("/c/");
   const needsRecovery = pathname.startsWith("/reset-password");
 
   if (userId) {

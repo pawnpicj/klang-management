@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/auth/auth-forms";
 import { Button } from "@/components/ui/button";
@@ -44,11 +45,16 @@ export default async function ProfilePage() {
           sizes="56px"
           className="size-14 object-contain"
         />
-        <form action={logoutAction}>
-          <Button type="submit" variant="outline">
-            ออกจากระบบ
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/clans">Clan/Gang</Link>
           </Button>
-        </form>
+          <form action={logoutAction}>
+            <Button type="submit" variant="outline">
+              ออกจากระบบ
+            </Button>
+          </form>
+        </div>
       </header>
 
       <section className="mt-10">
