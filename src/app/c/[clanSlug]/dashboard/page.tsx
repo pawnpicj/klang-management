@@ -1,9 +1,9 @@
 import Link from "next/link";
 import {
   Package,
-  ReceiptText,
   Settings2,
   ShieldCheck,
+  Truck,
   UsersRound,
   Warehouse,
 } from "lucide-react";
@@ -34,33 +34,23 @@ export default async function ClanDashboardPage({
     .maybeSingle();
   if (!clan) notFound();
 
-  const [{ data: membership }, { data: warehouse }, { data: members }] =
-    await Promise.all([
-      supabase
-        .from("clan_members")
-        .select(
-          "character_name, role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
-        )
-        .eq("clan_id", clan.id)
-        .eq("user_id", userId)
-        .eq("status", "ACTIVE")
-        .maybeSingle(),
-      supabase
-        .from("warehouses")
-        .select("id,name")
-        .eq("clan_id", clan.id)
-        .eq("is_default", true)
-        .eq("is_active", true)
-        .maybeSingle(),
-      supabase
-        .from("clan_members")
-        .select(
-          "id,character_name,user_id,role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
-        )
-        .eq("clan_id", clan.id)
-        .eq("status", "ACTIVE")
-        .order("joined_at", { ascending: true }),
-    ]);
+  const [{ data: membership }, { data: members }] = await Promise.all([
+    supabase
+      .from("clan_members")
+      .select("id")
+      .eq("clan_id", clan.id)
+      .eq("user_id", userId)
+      .eq("status", "ACTIVE")
+      .maybeSingle(),
+    supabase
+      .from("clan_members")
+      .select(
+        "id,character_name,user_id,role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
+      )
+      .eq("clan_id", clan.id)
+      .eq("status", "ACTIVE")
+      .order("joined_at", { ascending: true }),
+  ]);
   if (!membership) notFound();
 
   return (
@@ -111,36 +101,17 @@ export default async function ClanDashboardPage({
           </Button>
         </div>
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-3">
-          <div className="border-input rounded-xl border p-5">
-            <p className="text-muted-foreground text-sm">ตัวละคร</p>
-            <p className="mt-2 text-lg font-semibold">
-              {membership.character_name}
-            </p>
-          </div>
-          <div className="border-input rounded-xl border p-5">
-            <p className="text-muted-foreground text-sm">บทบาท</p>
-            <p className="mt-2 text-lg font-semibold">{membership.role.name}</p>
-          </div>
-          <div className="border-input rounded-xl border p-5">
-            <p className="text-muted-foreground text-sm">คลังหลัก</p>
-            <p className="mt-2 text-lg font-semibold">
-              {warehouse?.name ?? "ไม่พบข้อมูล"}
-            </p>
-          </div>
-        </section>
-
         <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Button
             asChild
             variant="outline"
             className="h-auto justify-start p-4"
           >
-            <Link href={`/c/${clan.slug}/transactions`}>
-              <ReceiptText className="text-primary size-5" aria-hidden="true" />
-              Transactions
+            <Link href={`/c/${clan.slug}/deliveries`}>
+              <Truck className="text-primary size-5" aria-hidden="true" />{" "}
+              Delivery
             </Link>
-          </Button>
+          </Button>{" "}
           <Button
             asChild
             variant="outline"

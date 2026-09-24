@@ -22,7 +22,7 @@ export default async function ClansPage({
   const { data: memberships, error } = await supabase
     .from("clan_members")
     .select(
-      "character_name, joined_at, clan:clans!clan_members_clan_id_fkey(id,name,slug,type,status), role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
+      "joined_at, clan:clans!clan_members_clan_id_fkey(id,name,slug,type,status), role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
     )
     .eq("user_id", userId)
     .eq("status", "ACTIVE")
@@ -106,7 +106,11 @@ export default async function ClansPage({
               return (
                 <article
                   key={membership.clan.id}
-                  className="border-input rounded-xl border p-5"
+                  className={`rounded-xl border p-5 ${
+                    isClan
+                      ? "border-sky-200 bg-sky-50 dark:border-sky-900 dark:bg-sky-950/40"
+                      : "border-violet-200 bg-violet-50 dark:border-violet-900 dark:bg-violet-950/40"
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -140,18 +144,6 @@ export default async function ClansPage({
                     </span>
                   </div>
                   <dl className="text-muted-foreground mt-5 space-y-2 text-sm">
-                    <div className="flex justify-between gap-3">
-                      <dt>ตัวละคร</dt>
-                      <dd className="text-foreground truncate font-medium">
-                        {membership.character_name}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between gap-3">
-                      <dt>บทบาท</dt>
-                      <dd className="text-foreground font-medium">
-                        {membership.role.name}
-                      </dd>
-                    </div>
                     <div className="flex items-center justify-between gap-3">
                       <dt className="flex items-center gap-2">
                         <UsersRound

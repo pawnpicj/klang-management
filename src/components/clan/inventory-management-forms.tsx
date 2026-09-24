@@ -1,10 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import { Archive, Save, Star } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { initialClanState } from "@/features/clans/state";
+import {
+  assetImageMaxBytes,
+  assetImageMimeTypes,
+  getAssetImageValidationError,
+} from "@/features/inventory/image";
 import {
   createAssetAction,
   createWarehouseAction,
@@ -31,6 +37,71 @@ function PendingButton({
 }
 const inputClass =
   "border-input bg-background focus-visible:ring-ring mt-1 h-10 w-full rounded-md border px-3 outline-none focus-visible:ring-2";
+
+function AssetImageField({ currentUrl }: { currentUrl?: string | null }) {
+  const [previewUrl, setPreviewUrl] = useState(currentUrl ?? null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const objectUrl = useRef<string | null>(null);
+
+  useEffect(
+    () => () => {
+      if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+    },
+    [],
+  );
+
+  function previewImage(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+    const error = getAssetImageValidationError(file);
+    if (error) {
+      event.currentTarget.value = "";
+      setFileError(error);
+      return;
+    }
+    if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+    objectUrl.current = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl.current);
+    setFileError(null);
+  }
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-medium">
+        รูปภาพ
+        <input
+          name="image"
+          type="file"
+          accept={assetImageMimeTypes.join(",")}
+          onChange={previewImage}
+          className={`${inputClass} cursor-pointer py-1.5 file:mr-3 file:rounded file:border-0 file:bg-emerald-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-emerald-900`}
+          aria-invalid={Boolean(fileError)}
+        />
+      </label>
+      <p className="text-muted-foreground text-xs">
+        เลือกรูป JPEG, PNG, WebP หรือ GIF ขนาดไม่เกิน{" "}
+        {assetImageMaxBytes / 1024 / 1024} MB
+      </p>
+      {fileError && (
+        <p className="text-sm text-red-600" role="alert">
+          {fileError}
+        </p>
+      )}
+      {previewUrl && (
+        <div className="border-input relative size-28 overflow-hidden rounded-lg border">
+          <Image
+            src={previewUrl}
+            alt="ตัวอย่างรูป Asset"
+            fill
+            sizes="112px"
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function CreateWarehouseForm({ clanSlug }: { clanSlug: string }) {
   const [state, action] = useActionState(
@@ -178,28 +249,20 @@ export function CreateAssetForm({ clanSlug }: { clanSlug: string }) {
         />
       </label>
       <label className="text-sm font-medium">
-        ตำแหน่งทศนิยม
-        <select name="decimalPlaces" className={inputClass}>
-          {[0, 1, 2, 3, 4].map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="text-sm font-medium sm:col-span-2">
-        URL รูปภาพ
+        จำนวนที่ต้องส่ง
         <input
-          name="imageUrl"
-          type="url"
-          maxLength={2048}
+          name="requiredQuantity"
+          type="number"
+          min="0"
+          step="any"
+          required
+          defaultValue="0"
           className={inputClass}
         />
       </label>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="allowNegative" className="size-4" />{" "}
-        อนุญาตยอดติดลบ
-      </label>
+      <div className="sm:col-span-2 lg:col-span-4">
+        <AssetImageField />
+      </div>
       <div className="flex items-end">
         <PendingButton>สร้าง Asset</PendingButton>
       </div>
@@ -218,24 +281,26 @@ export function CreateAssetForm({ clanSlug }: { clanSlug: string }) {
 export function AssetActions({
   clanSlug,
   asset,
+  imagePreviewUrl,
   canManage,
 }: {
   clanSlug: string;
   canManage: boolean;
+  imagePreviewUrl: string | null;
   asset: {
     id: string;
     name: string;
-    image_url: string | null;
+    required_quantity: number;
     is_active: boolean;
   };
 }) {
   const [state, action] = useActionState(updateAssetAction, initialClanState);
   if (!canManage || !asset.is_active) return null;
   return (
-    <div className="mt-4 space-y-3">
+    <div className="border-input mt-5 border-t pt-5">
       <form
         action={action}
-        className="grid gap-3 sm:grid-cols-[1fr_1.5fr_auto] sm:items-end"
+        className="grid items-start gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]"
       >
         <input type="hidden" name="clanSlug" value={clanSlug} />
         <input type="hidden" name="assetId" value={asset.id} />
@@ -250,36 +315,39 @@ export function AssetActions({
           />
         </label>
         <label className="text-sm font-medium">
-          URL รูปภาพ
+          จำนวนที่ต้องส่ง
           <input
-            name="imageUrl"
-            type="url"
-            defaultValue={asset.image_url ?? ""}
-            maxLength={2048}
+            name="requiredQuantity"
+            type="number"
+            min="0"
+            step="any"
+            required
+            defaultValue={asset.required_quantity}
             className={inputClass}
           />
         </label>
-        <PendingButton>
-          <Save className="size-4" aria-hidden="true" /> บันทึก
-        </PendingButton>
+        <AssetImageField currentUrl={imagePreviewUrl} />
         {state.message && (
-          <p className="text-sm text-red-600 sm:col-span-3" role="alert">
+          <p className="text-sm text-red-600 sm:col-span-2" role="alert">
             {state.message}
           </p>
         )}
-      </form>
-      <form
-        action={deactivateAssetAction}
-        onSubmit={(event) => {
-          if (!window.confirm(`ยืนยันปิดใช้งาน ${asset.name}?`))
-            event.preventDefault();
-        }}
-      >
-        <input type="hidden" name="clanSlug" value={clanSlug} />
-        <input type="hidden" name="assetId" value={asset.id} />
-        <PendingButton variant="destructive">
-          <Archive className="size-4" aria-hidden="true" /> ปิดใช้งาน
-        </PendingButton>
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:col-span-2">
+          <Button
+            type="submit"
+            variant="destructive"
+            formAction={deactivateAssetAction}
+            onClick={(event) => {
+              if (!window.confirm(`ยืนยันปิดใช้งาน ${asset.name}?`))
+                event.preventDefault();
+            }}
+          >
+            <Archive className="size-4" aria-hidden="true" /> ปิดใช้งาน
+          </Button>
+          <PendingButton>
+            <Save className="size-4" aria-hidden="true" /> บันทึก
+          </PendingButton>
+        </div>
       </form>
     </div>
   );

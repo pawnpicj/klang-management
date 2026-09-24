@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
@@ -36,9 +37,7 @@ export default async function AssetsPage({
   const [{ data: assets, error }, { data: canManage }] = await Promise.all([
     supabase
       .from("assets")
-      .select(
-        "id,code,name,asset_type,unit,image_url,decimal_places,allow_negative,is_active",
-      )
+      .select("id,code,name,required_quantity,image_url,is_active")
       .eq("clan_id", clan.id)
       .order("is_active", { ascending: false })
       .order("code"),
@@ -47,6 +46,20 @@ export default async function AssetsPage({
       p_permission_code: "asset.manage",
     }),
   ]);
+  const imageUrls = new Map(
+    await Promise.all(
+      (assets ?? []).map(async (asset) => {
+        if (!asset.image_url) return [asset.id, null] as const;
+        if (/^https?:\/\//i.test(asset.image_url)) {
+          return [asset.id, asset.image_url] as const;
+        }
+        const { data } = await supabase.storage
+          .from("asset-images")
+          .createSignedUrl(asset.image_url, 3600);
+        return [asset.id, data?.signedUrl ?? null] as const;
+      }),
+    ),
+  );
   const notice = query.created
     ? "สร้าง Asset แล้ว"
     : query.updated
@@ -114,21 +127,28 @@ export default async function AssetsPage({
             assets.map((asset) => (
               <article
                 key={asset.id}
-                className="border-input rounded-xl border p-5 sm:p-6"
+                className="border-input bg-background rounded-xl border p-5 shadow-sm sm:p-6"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-4">
+                    {imageUrls.get(asset.id) && (
+                      <div className="border-input relative size-14 shrink-0 overflow-hidden rounded-lg border">
+                        <Image
+                          src={imageUrls.get(asset.id)!}
+                          alt={`รูป ${asset.name}`}
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-lg font-semibold">{asset.name}</h3>
                       <span className="bg-muted rounded-full px-2.5 py-1 text-xs">
                         {asset.code}
                       </span>
                     </div>
-                    <p className="text-muted-foreground mt-2 text-sm">
-                      {asset.asset_type === "CURRENCY" ? "Currency" : "Item"} ·
-                      หน่วย {asset.unit} · ทศนิยม {asset.decimal_places} ตำแหน่ง
-                      {asset.allow_negative ? " · อนุญาตยอดติดลบ" : ""}
-                    </p>
                   </div>
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs ${asset.is_active ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
@@ -139,6 +159,7 @@ export default async function AssetsPage({
                 <AssetActions
                   clanSlug={clan.slug}
                   asset={asset}
+                  imagePreviewUrl={imageUrls.get(asset.id) ?? null}
                   canManage={Boolean(canManage)}
                 />
               </article>

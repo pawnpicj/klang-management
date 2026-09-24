@@ -656,6 +656,62 @@ describe("schema, migrations and clan creation", () => {
       ),
     ).rejects.toMatchObject({ code: "42501" });
   });
+  it("allows managers to correct and delete a delivery while rejecting ordinary members", async () => {
+    const memberId = (
+      await admin.query(
+        "select id from public.clan_members where clan_id=$1 and user_id=$2",
+        [clanA, member],
+      )
+    ).rows[0].id;
+    const deliveryId = (
+      await sql(
+        alice,
+        "select public.record_member_delivery($1,$2,$3,(now() at time zone 'Asia/Bangkok')::date,5) as id",
+        [clanA, memberId, assetA],
+      )
+    ).rows[0].id;
+
+    await sql(
+      alice,
+      "select public.update_member_delivery($1,$2,(now() at time zone 'Asia/Bangkok')::date,$3,7.5)",
+      [clanA, deliveryId, assetA],
+    );
+    expect(
+      (
+        await admin.query(
+          "select quantity::text,recorded_by from public.member_deliveries where id=$1",
+          [deliveryId],
+        )
+      ).rows[0],
+    ).toEqual({ quantity: "7.5000", recorded_by: alice });
+
+    await expect(
+      sql(
+        member,
+        "select public.update_member_delivery($1,$2,(now() at time zone 'Asia/Bangkok')::date,$3,9)",
+        [clanA, deliveryId, assetA],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(member, "select public.delete_member_delivery($1,$2)", [
+        clanA,
+        deliveryId,
+      ]),
+    ).rejects.toMatchObject({ code: "42501" });
+
+    await sql(alice, "select public.delete_member_delivery($1,$2)", [
+      clanA,
+      deliveryId,
+    ]);
+    expect(
+      (
+        await admin.query(
+          "select count(*)::int as count from public.member_deliveries where id=$1",
+          [deliveryId],
+        )
+      ).rows[0].count,
+    ).toBe(0);
+  });
   it("prevents deactivating Assets and Warehouses with balances", async () => {
     await deposit("10");
     await expect(
@@ -1671,6 +1727,60 @@ describe("Phase 3 authentication database boundaries", () => {
       sql(member, "update public.profiles set username='renamed' where id=$1", [
         member,
       ]),
+    ).rejects.toMatchObject({ code: "42501" });
+  });
+});
+
+describe("Asset image storage", () => {
+  it("keeps images private and limits writes to Asset managers in the same Clan", async () => {
+    const bucket = (
+      await sql(
+        null,
+        "select public, file_size_limit from storage.buckets where id='asset-images'",
+        [],
+        "postgres",
+      )
+    ).rows[0];
+    expect(bucket.public).toBe(false);
+    expect(Number(bucket.file_size_limit)).toBe(5 * 1024 * 1024);
+
+    const path = `${clanA}/${randomUUID()}.png`;
+    await sql(
+      alice,
+      "insert into storage.objects(bucket_id,name) values('asset-images',$1)",
+      [path],
+    );
+    expect(
+      (
+        await sql(
+          member,
+          "select count(*)::int as count from storage.objects where bucket_id='asset-images' and name=$1",
+          [path],
+        )
+      ).rows[0].count,
+    ).toBe(1);
+    expect(
+      (
+        await sql(
+          bob,
+          "select count(*)::int as count from storage.objects where bucket_id='asset-images' and name=$1",
+          [path],
+        )
+      ).rows[0].count,
+    ).toBe(0);
+    await expect(
+      sql(
+        member,
+        "insert into storage.objects(bucket_id,name) values('asset-images',$1)",
+        [`${clanA}/${randomUUID()}.png`],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(
+        bob,
+        "insert into storage.objects(bucket_id,name) values('asset-images',$1)",
+        [`${clanA}/${randomUUID()}.png`],
+      ),
     ).rejects.toMatchObject({ code: "42501" });
   });
 });

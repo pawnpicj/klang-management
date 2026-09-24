@@ -23,6 +23,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           name: string
+          required_quantity: number
           unit: string
           updated_at: string
         }
@@ -38,6 +39,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name: string
+          required_quantity?: number
           unit: string
           updated_at?: string
         }
@@ -53,6 +55,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name?: string
+          required_quantity?: number
           unit?: string
           updated_at?: string
         }
@@ -339,6 +342,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          delivery_tracking_started_on: string
           game_name: string | null
           id: string
           logo_url: string | null
@@ -352,6 +356,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          delivery_tracking_started_on?: string
           game_name?: string | null
           id?: string
           logo_url?: string | null
@@ -365,6 +370,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          delivery_tracking_started_on?: string
           game_name?: string | null
           id?: string
           logo_url?: string | null
@@ -379,6 +385,68 @@ export type Database = {
           {
             foreignKeyName: "clans_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_deliveries: {
+        Row: {
+          asset_id: string
+          clan_id: string
+          created_at: string
+          delivery_date: string
+          id: string
+          member_id: string
+          quantity: number
+          recorded_by: string
+        }
+        Insert: {
+          asset_id: string
+          clan_id: string
+          created_at?: string
+          delivery_date: string
+          id?: string
+          member_id: string
+          quantity: number
+          recorded_by: string
+        }
+        Update: {
+          asset_id?: string
+          clan_id?: string
+          created_at?: string
+          delivery_date?: string
+          id?: string
+          member_id?: string
+          quantity?: number
+          recorded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_deliveries_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_deliveries_clan_id_member_id_fkey"
+            columns: ["clan_id", "member_id"]
+            isOneToOne: false
+            referencedRelation: "clan_members"
+            referencedColumns: ["clan_id", "id"]
+          },
+          {
+            foreignKeyName: "member_deliveries_clan_id_asset_id_fkey"
+            columns: ["clan_id", "asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["clan_id", "id"]
+          },
+          {
+            foreignKeyName: "member_deliveries_recorded_by_fkey"
+            columns: ["recorded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -732,6 +800,10 @@ export type Database = {
         Returns: string
       }
       archive_clan: { Args: { p_clan_id: string }; Returns: string }
+      can_access_asset_image_object: {
+        Args: { p_name: string; p_write?: boolean }
+        Returns: boolean
+      }
       can_access_evidence_object: {
         Args: { p_name: string; p_write?: boolean }
         Returns: boolean
@@ -779,6 +851,20 @@ export type Database = {
           p_decimal_places?: number
           p_image_url?: string
           p_name: string
+          p_unit: string
+        }
+        Returns: string
+      }
+      create_asset_with_required_quantity: {
+        Args: {
+          p_allow_negative?: boolean
+          p_asset_type: string
+          p_clan_id: string
+          p_code: string
+          p_decimal_places?: number
+          p_image_url?: string
+          p_name: string
+          p_required_quantity?: number
           p_unit: string
         }
         Returns: string
@@ -834,6 +920,39 @@ export type Database = {
         }
         Returns: string
       }
+      record_member_deliveries: {
+        Args: {
+          p_clan_id: string
+          p_delivery_date: string
+          p_items: Json
+          p_member_id: string
+        }
+        Returns: number
+      }
+      record_member_delivery: {
+        Args: {
+          p_asset_id: string
+          p_clan_id: string
+          p_delivery_date: string
+          p_member_id: string
+          p_quantity: number
+        }
+        Returns: string
+      }
+      delete_member_delivery: {
+        Args: { p_clan_id: string; p_delivery_id: string }
+        Returns: string
+      }
+      update_member_delivery: {
+        Args: {
+          p_asset_id: string
+          p_clan_id: string
+          p_delivery_date: string
+          p_delivery_id: string
+          p_quantity: number
+        }
+        Returns: string
+      }
       remove_clan_member: {
         Args: { p_clan_id: string; p_member_id: string }
         Returns: string
@@ -853,6 +972,16 @@ export type Database = {
           p_clan_id: string
           p_image_url?: string
           p_name: string
+        }
+        Returns: string
+      }
+      update_asset_details_with_required_quantity: {
+        Args: {
+          p_asset_id: string
+          p_clan_id: string
+          p_image_url?: string
+          p_name: string
+          p_required_quantity: number
         }
         Returns: string
       }
