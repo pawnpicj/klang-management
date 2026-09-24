@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { safeNextPath } from "@/lib/auth/redirect";
 import { getPublicEnv } from "@/lib/env";
 import type { Database } from "@/types/database";
 
@@ -60,10 +61,11 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (userId && ["/login", "/register"].includes(pathname)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/profile";
-    url.search = "";
-    return redirectWithCookies(url, response);
+    const destination =
+      pathname === "/login"
+        ? safeNextPath(request.nextUrl.searchParams.get("next"))
+        : "/clans";
+    return redirectWithCookies(new URL(destination, request.url), response);
   }
 
   return response;

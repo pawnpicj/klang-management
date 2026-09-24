@@ -83,9 +83,10 @@ describe("authentication validation", () => {
 describe("safe post-auth redirects", () => {
   it("keeps local paths and rejects protocol-relative or backslash paths", () => {
     expect(safeNextPath("/profile?tab=settings")).toBe("/profile?tab=settings");
-    expect(safeNextPath("//evil.example")).toBe("/profile");
-    expect(safeNextPath("/\\evil.example")).toBe("/profile");
-    expect(safeNextPath("https://evil.example")).toBe("/profile");
+    expect(safeNextPath(null)).toBe("/clans");
+    expect(safeNextPath("//evil.example")).toBe("/clans");
+    expect(safeNextPath("/\\evil.example")).toBe("/clans");
+    expect(safeNextPath("https://evil.example")).toBe("/clans");
   });
 });
 

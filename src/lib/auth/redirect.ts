@@ -4,7 +4,7 @@ export function safeNextPath(value: string | null | undefined) {
     value.startsWith("//") ||
     value.includes("\\")
   ) {
-    return "/profile";
+    return "/clans";
   }
 
   return value;
