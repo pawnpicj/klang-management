@@ -13,6 +13,7 @@ import {
   addClanMemberSchema,
   clanMemberReferenceSchema,
   createClanSchema,
+  updateClanMemberDetailsSchema,
   updateClanMemberSchema,
   updateClanSchema,
 } from "@/features/clans/schemas";
@@ -135,6 +136,8 @@ describe("clan validation", () => {
         clanSlug: "black-dragon",
         name: "Black Dragon 2",
         type: "GANG",
+        note: "Weekly meeting",
+        rules: "Be kind",
       }).success,
     ).toBe(true);
     const memberId = "3f6f4a64-b262-4c08-8b93-5ee32fbf1465";
@@ -143,6 +146,15 @@ describe("clan validation", () => {
         clanSlug: "black-dragon",
         memberId,
         characterName: "Renamed",
+      }).success,
+    ).toBe(true);
+    expect(
+      updateClanMemberDetailsSchema.safeParse({
+        clanSlug: "black-dragon",
+        memberId,
+        characterName: "Renamed",
+        roleId: "1945e381-69e7-4c06-96f0-b08a6b065a6b",
+        deliveryStartedOn: "2026-09-28",
       }).success,
     ).toBe(true);
     expect(

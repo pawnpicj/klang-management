@@ -406,6 +406,42 @@ describe("schema, migrations and clan creation", () => {
       ).rows[0].status,
     ).toBe("REMOVED");
   });
+  it("lets managers edit individual member details and Delivery start dates", async () => {
+    const memberRow = (
+      await admin.query(
+        "select id,role_id from public.clan_members where clan_id=$1 and user_id=$2",
+        [clanA, member],
+      )
+    ).rows[0];
+
+    await sql(
+      alice,
+      "select public.update_clan_member_details($1,$2,'Edited Member',$3,(now() at time zone 'Asia/Bangkok')::date)",
+      [clanA, memberRow.id, memberRow.role_id],
+    );
+    expect(
+      (
+        await admin.query(
+          "select character_name,role_id,delivery_started_on::text from public.clan_members where id=$1",
+          [memberRow.id],
+        )
+      ).rows[0],
+    ).toEqual({
+      character_name: "Edited Member",
+      role_id: memberRow.role_id,
+      delivery_started_on: new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Bangkok",
+      }).format(new Date()),
+    });
+
+    await expect(
+      sql(
+        member,
+        "select public.update_clan_member_details($1,$2,'No Access',$3,(now() at time zone 'Asia/Bangkok')::date)",
+        [clanA, memberRow.id, memberRow.role_id],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+  });
   it("lets managers change roles while retaining an active Manager", async () => {
     const roles = (
       await admin.query(
@@ -860,20 +896,29 @@ describe("schema, migrations and clan creation", () => {
   it("lets managers edit and archive their Clan but denies ordinary members", async () => {
     await sql(
       alice,
-      "select public.update_clan_details($1,'Renamed Clan','GANG')",
+      "select public.update_clan_details_with_content($1,'Renamed Clan','GANG','Weekly note','1. Be kind')",
       [clanA],
     );
     expect(
       (
-        await sql(alice, "select name,type from public.clans where id=$1", [
-          clanA,
-        ])
+        await sql(
+          alice,
+          "select name,type,note,rules from public.clans where id=$1",
+          [clanA],
+        )
       ).rows[0],
-    ).toEqual({ name: "Renamed Clan", type: "GANG" });
+    ).toEqual({
+      name: "Renamed Clan",
+      type: "GANG",
+      note: "Weekly note",
+      rules: "1. Be kind",
+    });
     await expect(
-      sql(member, "select public.update_clan_details($1,'Hacked','CLAN')", [
-        clanA,
-      ]),
+      sql(
+        member,
+        "select public.update_clan_details_with_content($1,'Hacked','CLAN','No','Access')",
+        [clanA],
+      ),
     ).rejects.toMatchObject({ code: "42501" });
 
     await sql(alice, "select public.archive_clan($1)", [clanA]);

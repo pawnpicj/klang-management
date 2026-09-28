@@ -74,10 +74,14 @@ export function ClanSettingsForm({
   clanSlug,
   name,
   type,
+  note,
+  rules,
 }: {
   clanSlug: string;
   name: string;
   type: string;
+  note: string | null;
+  rules: string | null;
 }) {
   const [state, action] = useActionState(updateClanAction, initialClanState);
   return (
@@ -108,6 +112,36 @@ export function ClanSettingsForm({
           <option value="CLAN">Clan</option>
           <option value="GANG">Gang</option>
         </select>
+      </label>
+      <label className="block text-sm font-medium">
+        Note
+        <textarea
+          className="border-input bg-background focus-visible:ring-ring mt-1 min-h-28 w-full resize-y rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2"
+          name="note"
+          defaultValue={note ?? ""}
+          maxLength={2000}
+          placeholder="รายละเอียดหรือหมายเหตุของ Clan/Gang"
+        />
+        {state.fieldErrors?.note?.[0] && (
+          <span className="mt-1 block text-sm text-red-600">
+            {state.fieldErrors.note[0]}
+          </span>
+        )}
+      </label>
+      <label className="block text-sm font-medium">
+        Rule
+        <textarea
+          className="border-input bg-background focus-visible:ring-ring mt-1 min-h-40 w-full resize-y rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2"
+          name="rules"
+          defaultValue={rules ?? ""}
+          maxLength={10000}
+          placeholder="กฎของ Clan/Gang"
+        />
+        {state.fieldErrors?.rules?.[0] && (
+          <span className="mt-1 block text-sm text-red-600">
+            {state.fieldErrors.rules[0]}
+          </span>
+        )}
       </label>
       {state.message && (
         <p

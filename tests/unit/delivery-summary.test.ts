@@ -84,7 +84,22 @@ describe("summarizeMemberDeliveries", () => {
       missingByAsset: [],
     });
   });
-  it("starts obligations on the member join date", () => {
+  it("uses the configured member Delivery start date", () => {
+    const result = summarizeMemberDeliveries({
+      member: {
+        ...member,
+        delivery_started_on: "2026-09-02",
+      },
+      assets: [asset],
+      deliveries: [],
+      trackingStartedOn: "2026-09-01",
+      throughDate: "2026-09-03",
+    });
+    expect(result.missingDates).toEqual(["2026-09-02", "2026-09-03"]);
+    expect(result.missingByAsset[0]?.quantity).toBe(200_000);
+  });
+
+  it("starts obligations on the member join date when no override exists", () => {
     const result = summarizeMemberDeliveries({
       member: { ...member, joined_at: "2026-09-02T12:00:00Z" },
       assets: [asset],

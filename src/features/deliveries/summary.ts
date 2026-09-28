@@ -6,7 +6,11 @@ export type DeliveryAsset = {
   created_at: string;
 };
 
-export type DeliveryMember = { id: string; joined_at: string };
+export type DeliveryMember = {
+  id: string;
+  joined_at: string;
+  delivery_started_on?: string | null;
+};
 export type DeliveryRecord = {
   member_id: string;
   asset_id: string;
@@ -46,7 +50,9 @@ export function summarizeMemberDeliveries({
   trackingStartedOn: string;
   throughDate: string;
 }): MemberDeliverySummary {
-  const memberStart = datePart(member.joined_at);
+  const memberStart = member.delivery_started_on
+    ? datePart(member.delivery_started_on)
+    : datePart(member.joined_at);
   const start =
     memberStart > trackingStartedOn ? memberStart : trackingStartedOn;
   if (start > throughDate) {

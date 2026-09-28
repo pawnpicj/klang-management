@@ -363,6 +363,33 @@ export function DeliveryTable({
                 <X className="size-5" />
               </button>
             </div>
+            <section
+              className="bg-muted/50 mb-5 rounded-lg p-4"
+              aria-labelledby="missing-deliveries-heading"
+            >
+              <h3
+                id="missing-deliveries-heading"
+                className="text-sm font-semibold"
+              >
+                ขาดส่งอะไรบ้าง
+              </h3>
+              {selected.missingItems.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selected.missingItems.map((item) => (
+                    <span
+                      key={item.id}
+                      className="rounded-full bg-amber-50 px-2.5 py-1 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-100"
+                    >
+                      {item.name} {number.format(item.quantity)} {item.unit}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-sm font-medium text-emerald-700">
+                  ส่งครบแล้ว
+                </p>
+              )}
+            </section>
             <DeliveryForm
               key={selected.id}
               clanSlug={clanSlug}

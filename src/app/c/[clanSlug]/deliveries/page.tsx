@@ -53,7 +53,7 @@ export default async function DeliveriesPage({
     supabase
       .from("clan_members")
       .select(
-        "id,character_name,joined_at,role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
+        "id,character_name,joined_at,delivery_started_on,role:clan_roles!clan_members_clan_id_role_id_fkey(name)",
       )
       .eq("clan_id", clan.id)
       .eq("status", "ACTIVE")
@@ -82,7 +82,11 @@ export default async function DeliveriesPage({
   const loadError = membersError || assetsError || deliveriesError;
   const rows = (members ?? []).map((member) => {
     const summary = summarizeMemberDeliveries({
-      member: { ...member, joined_at: member.joined_at ?? today },
+      member: {
+        ...member,
+        joined_at: member.joined_at ?? today,
+        delivery_started_on: member.delivery_started_on ?? member.joined_at,
+      },
       assets: assets ?? [],
       deliveries: deliveries ?? [],
       trackingStartedOn: clan.delivery_tracking_started_on,

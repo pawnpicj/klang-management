@@ -22,11 +22,25 @@ export default async function ClanSettingsPage({
   if (typeof claimsData?.claims?.sub !== "string") {
     redirect(`/login?next=${encodeURIComponent(`/c/${clanSlug}/settings`)}`);
   }
-  const { data: clan } = await supabase
-    .from("clans")
-    .select("id,name,slug,type")
-    .eq("slug", clanSlug)
-    .maybeSingle();
+  const userId = claimsData.claims.sub;
+  const { data: memberships, error: membershipError } = await supabase
+    .from("clan_members")
+    .select(
+      "clan:clans!clan_members_clan_id_fkey(id,name,slug,type,status,note,rules)",
+    )
+    .eq("user_id", userId)
+    .eq("status", "ACTIVE");
+  if (membershipError) {
+    console.error(
+      "Clan settings membership could not be loaded",
+      membershipError.code,
+      membershipError.message,
+    );
+  }
+  const clan = memberships?.find(
+    (membership) =>
+      membership.clan.slug === clanSlug && membership.clan.status === "ACTIVE",
+  )?.clan;
   if (!clan) notFound();
   const { data: canManage } = await supabase.rpc("has_clan_permission", {
     p_clan_id: clan.id,
@@ -60,6 +74,8 @@ export default async function ClanSettingsPage({
             clanSlug={clan.slug}
             name={clan.name}
             type={clan.type}
+            note={clan.note}
+            rules={clan.rules}
           />
         </section>
         <section className="border-input mt-6 rounded-xl border p-5 sm:p-6">

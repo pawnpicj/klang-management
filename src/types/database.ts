@@ -250,6 +250,7 @@ export type Database = {
           character_name: string
           clan_id: string
           created_at: string
+          delivery_started_on: string
           id: string
           joined_at: string | null
           role_id: string
@@ -261,6 +262,7 @@ export type Database = {
           character_name: string
           clan_id: string
           created_at?: string
+          delivery_started_on?: string
           id?: string
           joined_at?: string | null
           role_id: string
@@ -272,6 +274,7 @@ export type Database = {
           character_name?: string
           clan_id?: string
           created_at?: string
+          delivery_started_on?: string
           id?: string
           joined_at?: string | null
           role_id?: string
@@ -347,6 +350,8 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          note: string | null
+          rules: string | null
           server_name: string | null
           slug: string
           status: string
@@ -361,6 +366,8 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          note?: string | null
+          rules?: string | null
           server_name?: string | null
           slug: string
           status?: string
@@ -375,6 +382,8 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          note?: string | null
+          rules?: string | null
           server_name?: string | null
           slug?: string
           status?: string
@@ -987,6 +996,26 @@ export type Database = {
       }
       update_clan_details: {
         Args: { p_clan_id: string; p_name: string; p_type: string }
+        Returns: string
+      }
+      update_clan_details_with_content: {
+        Args: {
+          p_clan_id: string
+          p_name: string
+          p_note: string
+          p_rules: string
+          p_type: string
+        }
+        Returns: string
+      }
+      update_clan_member_details: {
+        Args: {
+          p_character_name: string
+          p_clan_id: string
+          p_delivery_started_on: string
+          p_member_id: string
+          p_role_id: string
+        }
         Returns: string
       }
       update_clan_member_name: {

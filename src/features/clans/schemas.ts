@@ -42,6 +42,8 @@ export const updateClanSchema = z.object({
     .min(1, "กรุณากรอกชื่อ Clan/Gang")
     .max(100, "ชื่อต้องไม่เกิน 100 ตัวอักษร"),
   type: z.enum(["CLAN", "GANG"], "กรุณาเลือกประเภท"),
+  note: z.string().trim().max(2000, "Note ต้องไม่เกิน 2,000 ตัวอักษร"),
+  rules: z.string().trim().max(10000, "Rule ต้องไม่เกิน 10,000 ตัวอักษร"),
 });
 
 export const updateClanMemberSchema = z.object({
@@ -57,6 +59,12 @@ export const updateClanMemberSchema = z.object({
 export const clanMemberReferenceSchema = updateClanMemberSchema.pick({
   clanSlug: true,
   memberId: true,
+});
+
+export const updateClanMemberDetailsSchema = clanMemberReferenceSchema.extend({
+  characterName: updateClanMemberSchema.shape.characterName,
+  roleId: z.uuid("Role ไม่ถูกต้อง"),
+  deliveryStartedOn: z.iso.date("วันที่เริ่มส่งไม่ถูกต้อง"),
 });
 
 export const updateClanMemberRoleSchema = clanMemberReferenceSchema.extend({

@@ -7,6 +7,7 @@ import {
   clanMemberReferenceSchema,
   createClanSchema,
   updateClanMemberSchema,
+  updateClanMemberDetailsSchema,
   updateClanMemberRoleSchema,
   updateClanSchema,
 } from "@/features/clans/schemas";
@@ -142,10 +143,12 @@ export async function updateClanAction(
     return { status: "error", message: "ไม่พบ Clan/Gang หรือคุณไม่มีสิทธิ์" };
   }
 
-  const { error } = await supabase.rpc("update_clan_details", {
+  const { error } = await supabase.rpc("update_clan_details_with_content", {
     p_clan_id: clan.id,
     p_name: parsed.data.name,
     p_type: parsed.data.type,
+    p_note: parsed.data.note,
+    p_rules: parsed.data.rules,
   });
   if (error) {
     console.error("Clan update failed", error.code, error.message);
@@ -154,6 +157,7 @@ export async function updateClanAction(
 
   revalidatePath("/clans");
   revalidatePath(`/c/${parsed.data.clanSlug}`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/dashboard`);
   redirect(`/c/${parsed.data.clanSlug}/settings?updated=1`);
 }
 
@@ -185,6 +189,68 @@ export async function archiveClanAction(formData: FormData) {
 
   revalidatePath("/clans");
   redirect("/clans?archived=1");
+}
+
+export async function updateClanMemberDetailsAction(
+  _previousState: ClanActionState,
+  formData: FormData,
+): Promise<ClanActionState> {
+  const parsed = updateClanMemberDetailsSchema.safeParse(formValues(formData));
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "กรุณาตรวจสอบข้อมูลสมาชิก",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  if (typeof claimsData?.claims?.sub !== "string") {
+    return { status: "error", message: "กรุณาเข้าสู่ระบบอีกครั้ง" };
+  }
+  const { data: clan } = await supabase
+    .from("clans")
+    .select("id")
+    .eq("slug", parsed.data.clanSlug)
+    .maybeSingle();
+  if (!clan) {
+    return { status: "error", message: "ไม่พบ Clan/Gang หรือคุณไม่มีสิทธิ์" };
+  }
+
+  const { error } = await supabase.rpc("update_clan_member_details", {
+    p_clan_id: clan.id,
+    p_member_id: parsed.data.memberId,
+    p_character_name: parsed.data.characterName,
+    p_role_id: parsed.data.roleId,
+    p_delivery_started_on: parsed.data.deliveryStartedOn,
+  });
+  if (error) {
+    console.error(
+      "Clan member details update failed",
+      error.code,
+      error.message,
+    );
+    const duplicateName = error.code === "23505";
+    return {
+      status: "error",
+      message: duplicateName
+        ? "มีสมาชิกชื่อตัวละครนี้อยู่แล้ว"
+        : error.code === "23514"
+          ? "ต้องมี Manager ที่ Active อย่างน้อย 1 คน"
+          : error.code === "22023"
+            ? "วันที่เริ่มส่งไม่ถูกต้อง"
+            : "แก้ไขสมาชิกไม่สำเร็จ",
+      fieldErrors: duplicateName
+        ? { characterName: ["ชื่อตัวละครนี้ถูกใช้งานแล้ว"] }
+        : undefined,
+    };
+  }
+
+  revalidatePath(`/c/${parsed.data.clanSlug}/dashboard`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/members`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/deliveries`);
+  redirect(`/c/${parsed.data.clanSlug}/dashboard?memberUpdated=1`);
 }
 
 export async function updateClanMemberAction(
