@@ -276,9 +276,9 @@ export default async function ClanDashboardPage({
                 <tr id="dashboard_members_header_row">
                   {[
                     "สมาชิก",
-                    "Role",
                     "Social Media",
                     "อาวุธ / ยา / ระเบิด / อื่นๆ",
+                    "Role",
                   ].map((label, index) => (
                     <th
                       id={htmlId("dashboard_members_column", index)}
@@ -339,14 +339,6 @@ export default async function ClanDashboardPage({
                               />
                             )}
                           </div>
-                        </td>
-                        <td
-                          id={htmlId("member_role", member.id)}
-                          className="px-5 py-4"
-                        >
-                          <span className="bg-muted rounded-full px-2.5 py-1 text-xs">
-                            {member.role.name}
-                          </span>
                         </td>
                         <td
                           id={htmlId("member_social", member.id)}
@@ -419,6 +411,14 @@ export default async function ClanDashboardPage({
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
+                        </td>
+                        <td
+                          id={htmlId("member_role", member.id)}
+                          className="px-5 py-4"
+                        >
+                          <span className="bg-muted rounded-full px-2.5 py-1 text-xs">
+                            {member.role.name}
+                          </span>
                         </td>
                       </tr>
                     );

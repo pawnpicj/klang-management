@@ -54,12 +54,13 @@ export function ThemeSwitcher() {
             type="button"
             size="sm"
             variant={theme === value ? "default" : "outline"}
+            aria-label={value === "light" ? "Light" : "Dark"}
+            title={value === "light" ? "Light" : "Dark"}
             aria-pressed={theme === value}
             onClick={() => choose(value)}
-            className="h-8 rounded-full border-0 px-3 text-xs"
+            className="size-8 rounded-full border-0 p-0"
           >
             <Icon aria-hidden="true" className="size-4" />
-            {value === "light" ? "Light" : "Dark"}
           </Button>
         );
       })}
