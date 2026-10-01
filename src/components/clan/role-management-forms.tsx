@@ -10,13 +10,21 @@ import {
   deleteCustomRoleAction,
   updateCustomRoleAction,
 } from "@/features/roles/actions";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
 
 type Permission = { code: string; description: string };
 
 function SubmitButton({ label = "บันทึก" }: { label?: string }) {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button
+      id={htmlId("clan_submit_button_button", htmlIdPrefix)}
+      type="submit"
+      disabled={pending}
+    >
       {pending ? "กำลังบันทึก…" : label}
     </Button>
   );
@@ -29,16 +37,28 @@ function PermissionFields({
   permissions: Permission[];
   selected?: string[];
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   return (
     <fieldset>
       <legend className="text-sm font-medium">Permissions</legend>
       <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {permissions.map((permission) => (
+        {permissions.map((permission, htmlRowIndex1) => (
           <label
+            id={htmlId(
+              "clan_permission_fields_label",
+              htmlIdPrefix,
+              htmlRowIndex1,
+            )}
             key={permission.code}
             className="border-input flex items-start gap-2 rounded-md border p-3 text-sm"
           >
             <input
+              id={htmlId(
+                "clan_permission_fields_permission_codes",
+                htmlIdPrefix,
+                htmlRowIndex1,
+              )}
               type="checkbox"
               name="permissionCodes"
               value={permission.code}
@@ -65,16 +85,31 @@ export function CreateRoleForm({
   clanSlug: string;
   permissions: Permission[];
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     createCustomRoleAction,
     initialClanState,
   );
   return (
-    <form action={action} className="space-y-5">
-      <input type="hidden" name="clanSlug" value={clanSlug} />
-      <label className="block text-sm font-medium">
+    <form
+      id={htmlId("clan_create_role_form_form", htmlIdPrefix)}
+      action={action}
+      className="space-y-5"
+    >
+      <input
+        id={htmlId("clan_create_role_form_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
+      <label
+        id={htmlId("clan_create_role_form_role", htmlIdPrefix)}
+        className="block text-sm font-medium"
+      >
         ชื่อ Role
         <input
+          id={htmlId("clan_create_role_form_name", htmlIdPrefix)}
           name="name"
           required
           maxLength={80}
@@ -83,7 +118,11 @@ export function CreateRoleForm({
       </label>
       <PermissionFields permissions={permissions} />
       {state.message && (
-        <p className="text-sm text-red-600" role="alert">
+        <p
+          id={htmlId("clan_create_role_form_state_message", htmlIdPrefix)}
+          className="text-sm text-red-600"
+          role="alert"
+        >
           {state.message}
         </p>
       )}
@@ -101,18 +140,38 @@ export function EditRoleForm({
   role: { id: string; name: string; permissionCodes: string[] };
   permissions: Permission[];
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     updateCustomRoleAction,
     initialClanState,
   );
   return (
     <div className="space-y-4">
-      <form action={action} className="space-y-5">
-        <input type="hidden" name="clanSlug" value={clanSlug} />
-        <input type="hidden" name="roleId" value={role.id} />
-        <label className="block text-sm font-medium">
+      <form
+        id={htmlId("clan_edit_role_form_form", htmlIdPrefix)}
+        action={action}
+        className="space-y-5"
+      >
+        <input
+          id={htmlId("clan_edit_role_form_clan_slug", htmlIdPrefix)}
+          type="hidden"
+          name="clanSlug"
+          value={clanSlug}
+        />
+        <input
+          id={htmlId("clan_edit_role_form_role_id", htmlIdPrefix)}
+          type="hidden"
+          name="roleId"
+          value={role.id}
+        />
+        <label
+          id={htmlId("clan_edit_role_form_role", htmlIdPrefix)}
+          className="block text-sm font-medium"
+        >
           ชื่อ Role
           <input
+            id={htmlId("clan_edit_role_form_name", htmlIdPrefix)}
             name="name"
             defaultValue={role.name}
             required
@@ -125,24 +184,46 @@ export function EditRoleForm({
           selected={role.permissionCodes}
         />
         {state.message && (
-          <p className="text-sm text-red-600" role="alert">
+          <p
+            id={htmlId("clan_edit_role_form_state_message", htmlIdPrefix)}
+            className="text-sm text-red-600"
+            role="alert"
+          >
             {state.message}
           </p>
         )}
-        <Button type="submit">
+        <Button
+          id={htmlId("clan_edit_role_form_role_2", htmlIdPrefix)}
+          type="submit"
+        >
           <Save className="size-4" aria-hidden="true" /> บันทึก Role
         </Button>
       </form>
       <form
+        id={htmlId("clan_edit_role_form_form_2", htmlIdPrefix)}
         action={deleteCustomRoleAction}
         onSubmit={(event) => {
           if (!window.confirm(`ยืนยันลบ Role ${role.name}?`))
             event.preventDefault();
         }}
       >
-        <input type="hidden" name="clanSlug" value={clanSlug} />
-        <input type="hidden" name="roleId" value={role.id} />
-        <Button type="submit" variant="destructive">
+        <input
+          id={htmlId("clan_edit_role_form_clan_slug_2", htmlIdPrefix)}
+          type="hidden"
+          name="clanSlug"
+          value={clanSlug}
+        />
+        <input
+          id={htmlId("clan_edit_role_form_role_id_2", htmlIdPrefix)}
+          type="hidden"
+          name="roleId"
+          value={role.id}
+        />
+        <Button
+          id={htmlId("clan_edit_role_form_role_3", htmlIdPrefix)}
+          type="submit"
+          variant="destructive"
+        >
           <Trash2 className="size-4" aria-hidden="true" /> ลบ Role
         </Button>
       </form>

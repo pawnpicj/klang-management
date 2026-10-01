@@ -8,6 +8,7 @@ import {
 } from "@/components/clan/role-management-forms";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -59,33 +60,57 @@ export default async function RolesPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("roles_roles_page_main")}
+        className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6"
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <Link
+              id={htmlId("roles_roles_page_dashboard")}
               href={`/c/${clan.slug}/dashboard`}
               className="text-primary text-sm font-medium hover:underline"
             >
               ← กลับ Dashboard
             </Link>
-            <h1 className="mt-4 text-3xl font-bold">Roles และ Permissions</h1>
-            <p className="text-muted-foreground mt-2">{clan.name}</p>
+            <h1
+              id={htmlId("roles_roles_page_roles_permissions")}
+              className="mt-4 text-3xl font-bold"
+            >
+              Roles และ Permissions
+            </h1>
+            <p
+              id={htmlId("roles_roles_page_clan_name")}
+              className="text-muted-foreground mt-2"
+            >
+              {clan.name}
+            </p>
           </div>
-          <Button asChild variant="outline">
-            <Link href={`/c/${clan.slug}/members`}>สมาชิก</Link>
+          <Button
+            id={htmlId("roles_roles_page_button")}
+            asChild
+            variant="outline"
+          >
+            <Link
+              id={htmlId("roles_roles_page_link")}
+              href={`/c/${clan.slug}/members`}
+            >
+              สมาชิก
+            </Link>
           </Button>
         </div>
         {notice && (
           <ActionNotice
             queryKeys={["created", "updated", "deleted"]}
-            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
           >
             {notice}
           </ActionNotice>
         )}
         {query.error && (
           <p
-            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-800"
+            id={htmlId("roles_roles_page_p")}
+            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
             role="alert"
           >
             {query.error === "role-in-use"
@@ -94,26 +119,48 @@ export default async function RolesPage({
           </p>
         )}
         {canManage && permissions && (
-          <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
-            <h2 className="text-lg font-semibold">สร้าง Custom Role</h2>
+          <section
+            id={htmlId("roles_roles_page_section")}
+            className="border-input mt-8 rounded-xl border p-5 sm:p-6"
+          >
+            <h2
+              id={htmlId("roles_roles_page_custom_role")}
+              className="text-lg font-semibold"
+            >
+              สร้าง Custom Role
+            </h2>
             <div className="mt-5">
               <CreateRoleForm clanSlug={clan.slug} permissions={permissions} />
             </div>
           </section>
         )}
-        <section className="mt-8 space-y-4">
-          <h2 className="text-xl font-semibold">Role ทั้งหมด</h2>
-          {roles?.map((role) => {
+        <section
+          id={htmlId("roles_roles_page_section_2")}
+          className="mt-8 space-y-4"
+        >
+          <h2
+            id={htmlId("roles_roles_page_role")}
+            className="text-xl font-semibold"
+          >
+            Role ทั้งหมด
+          </h2>
+          {roles?.map((role, htmlRowIndex1) => {
             const selected = role.role_permissions.map(
               (item) => item.permission_code,
             );
             return (
               <article
+                id={htmlId("roles_roles_page_article", htmlRowIndex1)}
                 key={role.id}
                 className="border-input rounded-xl border p-5 sm:p-6"
               >
                 <div className="mb-4 flex items-center justify-between gap-3">
-                  <h3 className="text-lg font-semibold">{role.name}</h3>
+                  <h3
+                    id={htmlId("roles_roles_page_role_name", htmlRowIndex1)}
+                    className="text-lg font-semibold"
+                  >
+                    {role.name}
+                  </h3>
                   <span className="bg-muted rounded-full px-2.5 py-1 text-xs">
                     {role.is_system_role ? "System" : "Custom"}
                   </span>

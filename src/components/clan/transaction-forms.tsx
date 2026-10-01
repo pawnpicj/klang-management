@@ -10,6 +10,8 @@ import {
   uploadEvidenceAction,
   voidTransactionAction,
 } from "@/features/transactions/actions";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
 
 type TransactionType = "DEPOSIT" | "WITHDRAW" | "TRANSFER";
 type Asset = {
@@ -26,9 +28,15 @@ const fieldClass =
   "border-input bg-background focus-visible:ring-ring mt-1 h-10 w-full rounded-md border px-3 outline-none focus-visible:ring-2";
 
 function SubmitButton({ children }: { children: React.ReactNode }) {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button
+      id={htmlId("clan_submit_button_button", htmlIdPrefix)}
+      type="submit"
+      disabled={pending}
+    >
       {pending ? "กำลังบันทึก…" : children}
     </Button>
   );
@@ -49,6 +57,8 @@ export function TransactionForm({
   warehouses: Warehouse[];
   members: Member[];
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     createAndPostTransactionAction,
     initialClanState,
@@ -62,6 +72,7 @@ export function TransactionForm({
         : "Transfer";
   return (
     <form
+      id={htmlId("clan_transaction_form_form", htmlIdPrefix)}
       action={action}
       className="space-y-6"
       onSubmit={(event) => {
@@ -69,13 +80,38 @@ export function TransactionForm({
           event.preventDefault();
       }}
     >
-      <input type="hidden" name="clanSlug" value={clanSlug} />
-      <input type="hidden" name="transactionType" value={transactionType} />
-      <input type="hidden" name="clientRequestId" value={clientRequestId} />
+      <input
+        id={htmlId("clan_transaction_form_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
+      <input
+        id={htmlId("clan_transaction_form_transaction_type", htmlIdPrefix)}
+        type="hidden"
+        name="transactionType"
+        value={transactionType}
+      />
+      <input
+        id={htmlId("clan_transaction_form_client_request_id", htmlIdPrefix)}
+        type="hidden"
+        name="clientRequestId"
+        value={clientRequestId}
+      />
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="text-sm font-medium">
+        <label
+          id={htmlId("clan_transaction_form_label", htmlIdPrefix)}
+          className="text-sm font-medium"
+        >
           สมาชิกที่เกี่ยวข้อง
-          <select name="contributorMemberId" className={fieldClass}>
+          <select
+            id={htmlId(
+              "clan_transaction_form_contributor_member_id",
+              htmlIdPrefix,
+            )}
+            name="contributorMemberId"
+            className={fieldClass}
+          >
             <option value="">ไม่ระบุ</option>
             {members.map((member) => (
               <option key={member.id} value={member.id}>
@@ -85,9 +121,20 @@ export function TransactionForm({
           </select>
         </label>
         {transactionType !== "DEPOSIT" && (
-          <label className="text-sm font-medium">
+          <label
+            id={htmlId("clan_transaction_form_warehouse", htmlIdPrefix)}
+            className="text-sm font-medium"
+          >
             Warehouse ต้นทาง
-            <select name="fromWarehouseId" required className={fieldClass}>
+            <select
+              id={htmlId(
+                "clan_transaction_form_from_warehouse_id",
+                htmlIdPrefix,
+              )}
+              name="fromWarehouseId"
+              required
+              className={fieldClass}
+            >
               <option value="">เลือก Warehouse</option>
               {warehouses.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
@@ -99,9 +146,17 @@ export function TransactionForm({
           </label>
         )}
         {transactionType === "TRANSFER" && (
-          <label className="text-sm font-medium">
+          <label
+            id={htmlId("clan_transaction_form_warehouse_2", htmlIdPrefix)}
+            className="text-sm font-medium"
+          >
             Warehouse ปลายทาง
-            <select name="toWarehouseId" required className={fieldClass}>
+            <select
+              id={htmlId("clan_transaction_form_to_warehouse_id", htmlIdPrefix)}
+              name="toWarehouseId"
+              required
+              className={fieldClass}
+            >
               <option value="">เลือก Warehouse</option>
               {warehouses.map((warehouse) => (
                 <option key={warehouse.id} value={warehouse.id}>
@@ -125,6 +180,7 @@ export function TransactionForm({
         <div className="flex items-center justify-between">
           <legend className="font-semibold">รายการ Asset</legend>
           <Button
+            id={htmlId("clan_transaction_form_button", htmlIdPrefix)}
             type="button"
             size="sm"
             variant="outline"
@@ -140,9 +196,21 @@ export function TransactionForm({
             key={row}
             className="border-input grid gap-3 rounded-lg border p-4 sm:grid-cols-[1.5fr_1fr_1fr_auto] sm:items-end"
           >
-            <label className="text-sm font-medium">
+            <label
+              id={htmlId("clan_transaction_form_asset", htmlIdPrefix, index)}
+              className="text-sm font-medium"
+            >
               Asset
-              <select name="assetId" required className={fieldClass}>
+              <select
+                id={htmlId(
+                  "clan_transaction_form_asset_id",
+                  htmlIdPrefix,
+                  index,
+                )}
+                name="assetId"
+                required
+                className={fieldClass}
+              >
                 <option value="">เลือก Asset</option>
                 {assets.map((asset) => (
                   <option key={asset.id} value={asset.id}>
@@ -151,9 +219,17 @@ export function TransactionForm({
                 ))}
               </select>
             </label>
-            <label className="text-sm font-medium">
+            <label
+              id={htmlId("clan_transaction_form_label_2", htmlIdPrefix, index)}
+              className="text-sm font-medium"
+            >
               จำนวน
               <input
+                id={htmlId(
+                  "clan_transaction_form_quantity",
+                  htmlIdPrefix,
+                  index,
+                )}
                 name="quantity"
                 type="number"
                 required
@@ -162,9 +238,17 @@ export function TransactionForm({
                 className={fieldClass}
               />
             </label>
-            <label className="text-sm font-medium">
+            <label
+              id={htmlId("clan_transaction_form_label_3", htmlIdPrefix, index)}
+              className="text-sm font-medium"
+            >
               มูลค่าต่อหน่วย
               <input
+                id={htmlId(
+                  "clan_transaction_form_unit_value",
+                  htmlIdPrefix,
+                  index,
+                )}
                 name="unitValue"
                 type="number"
                 min="0"
@@ -173,6 +257,7 @@ export function TransactionForm({
               />
             </label>
             <Button
+              id={htmlId("clan_transaction_form_button_2", htmlIdPrefix, index)}
               type="button"
               variant="destructive"
               size="sm"
@@ -188,9 +273,13 @@ export function TransactionForm({
           </div>
         ))}
       </fieldset>
-      <label className="block text-sm font-medium">
+      <label
+        id={htmlId("clan_transaction_form_label_4", htmlIdPrefix)}
+        className="block text-sm font-medium"
+      >
         หมายเหตุ
         <textarea
+          id={htmlId("clan_transaction_form_note", htmlIdPrefix)}
           name="note"
           maxLength={1000}
           rows={3}
@@ -199,7 +288,8 @@ export function TransactionForm({
       </label>
       {state.message && (
         <p
-          className="rounded-md bg-red-50 p-3 text-sm text-red-700"
+          id={htmlId("clan_transaction_form_state_message", htmlIdPrefix)}
+          className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200"
           role="alert"
         >
           {state.message}
@@ -217,17 +307,37 @@ export function EvidenceUploadForm({
   clanSlug: string;
   transactionId: string;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     uploadEvidenceAction,
     initialClanState,
   );
   return (
-    <form action={action} className="space-y-3">
-      <input type="hidden" name="clanSlug" value={clanSlug} />
-      <input type="hidden" name="transactionId" value={transactionId} />
-      <label className="block text-sm font-medium">
+    <form
+      id={htmlId("clan_evidence_upload_form_form", htmlIdPrefix)}
+      action={action}
+      className="space-y-3"
+    >
+      <input
+        id={htmlId("clan_evidence_upload_form_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
+      <input
+        id={htmlId("clan_evidence_upload_form_transaction_id", htmlIdPrefix)}
+        type="hidden"
+        name="transactionId"
+        value={transactionId}
+      />
+      <label
+        id={htmlId("clan_evidence_upload_form_label", htmlIdPrefix)}
+        className="block text-sm font-medium"
+      >
         ไฟล์หลักฐาน
         <input
+          id={htmlId("clan_evidence_upload_form_evidence", htmlIdPrefix)}
           name="evidence"
           type="file"
           required
@@ -235,11 +345,21 @@ export function EvidenceUploadForm({
           className="border-input mt-1 block w-full rounded-md border p-2 text-sm"
         />
       </label>
-      <p className="text-muted-foreground text-xs">
+      <p
+        id={htmlId(
+          "clan_evidence_upload_form_jpg_png_web_p_pdf_10_mb",
+          htmlIdPrefix,
+        )}
+        className="text-muted-foreground text-xs"
+      >
         JPG, PNG, WebP หรือ PDF ไม่เกิน 10 MB
       </p>
       {state.message && (
-        <p className="text-sm text-red-600" role="alert">
+        <p
+          id={htmlId("clan_evidence_upload_form_state_message", htmlIdPrefix)}
+          className="text-sm text-red-600"
+          role="alert"
+        >
           {state.message}
         </p>
       )}
@@ -257,8 +377,11 @@ export function VoidTransactionButton({
   clanSlug: string;
   transactionId: string;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   return (
     <form
+      id={htmlId("clan_void_transaction_button_form", htmlIdPrefix)}
       action={voidTransactionAction}
       onSubmit={(event) => {
         if (
@@ -269,8 +392,18 @@ export function VoidTransactionButton({
           event.preventDefault();
       }}
     >
-      <input type="hidden" name="clanSlug" value={clanSlug} />
-      <input type="hidden" name="transactionId" value={transactionId} />
+      <input
+        id={htmlId("clan_void_transaction_button_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
+      <input
+        id={htmlId("clan_void_transaction_button_transaction_id", htmlIdPrefix)}
+        type="hidden"
+        name="transactionId"
+        value={transactionId}
+      />
       <SubmitButton>Void Transaction</SubmitButton>
     </form>
   );

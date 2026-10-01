@@ -1,3 +1,4 @@
+import { memberProfileFields } from "./member-profile";
 import { z } from "zod";
 import { socialLinkSchema, socialPlatforms } from "./social-links";
 
@@ -71,6 +72,7 @@ export const updateClanMemberDetailsSchema = clanMemberReferenceSchema.extend({
   characterName: updateClanMemberSchema.shape.characterName,
   roleId: z.uuid("Role ไม่ถูกต้อง"),
   deliveryStartedOn: z.iso.date("วันที่เริ่มส่งไม่ถูกต้อง"),
+  ...memberProfileFields,
 });
 
 export const updateClanMemberRoleSchema = clanMemberReferenceSchema.extend({

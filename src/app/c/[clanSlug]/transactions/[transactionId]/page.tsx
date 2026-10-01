@@ -8,6 +8,7 @@ import {
 } from "@/components/clan/transaction-forms";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 const number = (value: number, decimals = 4) =>
@@ -101,19 +102,33 @@ export default async function TransactionDetailPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("transaction_id_transaction_detail_page_main")}
+        className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6"
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Link
+              id={htmlId("transaction_id_transaction_detail_page_transactions")}
               href={`/c/${clan.slug}/transactions`}
               className="text-primary text-sm font-medium hover:underline"
             >
               ← กลับ Transactions
             </Link>
-            <h1 className="mt-4 text-3xl font-bold">
+            <h1
+              id={htmlId(
+                "transaction_id_transaction_detail_page_transaction_transaction_no",
+              )}
+              className="mt-4 text-3xl font-bold"
+            >
               {transaction.transaction_no}
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p
+              id={htmlId(
+                "transaction_id_transaction_detail_page_transaction_transaction_type",
+              )}
+              className="text-muted-foreground mt-2"
+            >
               {transaction.transaction_type} · {transaction.transaction_date}
             </p>
           </div>
@@ -127,30 +142,64 @@ export default async function TransactionDetailPage({
         {notice && (
           <ActionNotice
             queryKeys={["created", "uploaded", "voided"]}
-            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
           >
             {notice}
           </ActionNotice>
         )}
         {query.error && (
-          <p className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-700">
+          <p
+            id={htmlId("transaction_id_transaction_detail_page_void_void")}
+            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200"
+          >
             Void ไม่สำเร็จ อาจมียอดไม่พอหรือรายการถูก Void แล้ว
           </p>
         )}
-        <section className="mt-8 grid gap-4 sm:grid-cols-3">
+        <section
+          id={htmlId("transaction_id_transaction_detail_page_section")}
+          className="mt-8 grid gap-4 sm:grid-cols-3"
+        >
           <div className="border-input rounded-xl border p-4">
-            <p className="text-muted-foreground text-sm">สถานะ</p>
-            <p className="mt-2 font-semibold">{transaction.status}</p>
+            <p
+              id={htmlId("transaction_id_transaction_detail_page_p")}
+              className="text-muted-foreground text-sm"
+            >
+              สถานะ
+            </p>
+            <p
+              id={htmlId(
+                "transaction_id_transaction_detail_page_transaction_status",
+              )}
+              className="mt-2 font-semibold"
+            >
+              {transaction.status}
+            </p>
           </div>
           <div className="border-input rounded-xl border p-4">
-            <p className="text-muted-foreground text-sm">สมาชิก</p>
-            <p className="mt-2 font-semibold">
+            <p
+              id={htmlId("transaction_id_transaction_detail_page_p_2")}
+              className="text-muted-foreground text-sm"
+            >
+              สมาชิก
+            </p>
+            <p
+              id={htmlId("transaction_id_transaction_detail_page_p_3")}
+              className="mt-2 font-semibold"
+            >
               {transaction.contributor?.character_name ?? "ไม่ระบุ"}
             </p>
           </div>
           <div className="border-input rounded-xl border p-4">
-            <p className="text-muted-foreground text-sm">ผู้ทำรายการ</p>
-            <p className="mt-2 font-mono text-xs">
+            <p
+              id={htmlId("transaction_id_transaction_detail_page_p_4")}
+              className="text-muted-foreground text-sm"
+            >
+              ผู้ทำรายการ
+            </p>
+            <p
+              id={htmlId("transaction_id_transaction_detail_page_p_5")}
+              className="mt-2 font-mono text-xs"
+            >
               {transaction.created_by === userId
                 ? "บัญชีของคุณ"
                 : transaction.created_by}
@@ -158,14 +207,25 @@ export default async function TransactionDetailPage({
           </div>
         </section>
         {transaction.note && (
-          <p className="border-input mt-4 rounded-xl border p-4 text-sm">
+          <p
+            id={htmlId(
+              "transaction_id_transaction_detail_page_transaction_note",
+            )}
+            className="border-input mt-4 rounded-xl border p-4 text-sm"
+          >
             {transaction.note}
           </p>
         )}
         {transaction.reversal_transaction_id && (
-          <p className="mt-4 text-sm">
+          <p
+            id={htmlId("transaction_id_transaction_detail_page_p_6")}
+            className="mt-4 text-sm"
+          >
             รายการที่เชื่อมโยง:{" "}
             <Link
+              id={htmlId(
+                "transaction_id_transaction_detail_page_transaction_reversal_transaction_id",
+              )}
               className="text-primary hover:underline"
               href={`/c/${clan.slug}/transactions/${transaction.reversal_transaction_id}`}
             >
@@ -173,38 +233,118 @@ export default async function TransactionDetailPage({
             </Link>
           </p>
         )}
-        <section className="border-input mt-8 overflow-hidden rounded-xl border">
+        <section
+          id={htmlId("transaction_id_transaction_detail_page_section_2")}
+          className="border-input mt-8 overflow-hidden rounded-xl border"
+        >
           <div className="border-input border-b px-5 py-4">
-            <h2 className="font-semibold">รายการ Asset</h2>
+            <h2
+              id={htmlId("transaction_id_transaction_detail_page_asset")}
+              className="font-semibold"
+            >
+              รายการ Asset
+            </h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="px-5 py-3">Asset</th>
-                  <th className="px-5 py-3">ต้นทาง</th>
-                  <th className="px-5 py-3">ปลายทาง</th>
-                  <th className="px-5 py-3 text-right">จำนวน</th>
-                  <th className="px-5 py-3 text-right">มูลค่า/หน่วย</th>
+            <table
+              id={htmlId("transaction_id_transaction_detail_page_table")}
+              className="w-full min-w-[720px] text-left text-sm"
+            >
+              <thead
+                id={htmlId("transaction_id_transaction_detail_page_thead")}
+                className="bg-muted/50"
+              >
+                <tr id={htmlId("transaction_id_transaction_detail_page_tr")}>
+                  <th
+                    id={htmlId(
+                      "transaction_id_transaction_detail_page_asset_2",
+                    )}
+                    className="px-5 py-3"
+                  >
+                    Asset
+                  </th>
+                  <th
+                    id={htmlId("transaction_id_transaction_detail_page_th")}
+                    className="px-5 py-3"
+                  >
+                    ต้นทาง
+                  </th>
+                  <th
+                    id={htmlId("transaction_id_transaction_detail_page_th_2")}
+                    className="px-5 py-3"
+                  >
+                    ปลายทาง
+                  </th>
+                  <th
+                    id={htmlId("transaction_id_transaction_detail_page_th_3")}
+                    className="px-5 py-3 text-right"
+                  >
+                    จำนวน
+                  </th>
+                  <th
+                    id={htmlId("transaction_id_transaction_detail_page_th_4")}
+                    className="px-5 py-3 text-right"
+                  >
+                    มูลค่า/หน่วย
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-input divide-y">
-                {items?.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-5 py-4">
+              <tbody
+                id={htmlId("transaction_id_transaction_detail_page_tbody")}
+                className="divide-input divide-y"
+              >
+                {items?.map((item, htmlRowIndex1) => (
+                  <tr
+                    id={htmlId(
+                      "transaction_id_transaction_detail_page_tr_2",
+                      htmlRowIndex1,
+                    )}
+                    key={item.id}
+                  >
+                    <td
+                      id={htmlId(
+                        "transaction_id_transaction_detail_page_item_asset_code",
+                        htmlRowIndex1,
+                      )}
+                      className="px-5 py-4"
+                    >
                       {item.asset.code} · {item.asset.name}
                     </td>
-                    <td className="px-5 py-4">
+                    <td
+                      id={htmlId(
+                        "transaction_id_transaction_detail_page_td",
+                        htmlRowIndex1,
+                      )}
+                      className="px-5 py-4"
+                    >
                       {item.from_warehouse?.name ?? "—"}
                     </td>
-                    <td className="px-5 py-4">
+                    <td
+                      id={htmlId(
+                        "transaction_id_transaction_detail_page_td_2",
+                        htmlRowIndex1,
+                      )}
+                      className="px-5 py-4"
+                    >
                       {item.to_warehouse?.name ?? "—"}
                     </td>
-                    <td className="px-5 py-4 text-right tabular-nums">
+                    <td
+                      id={htmlId(
+                        "transaction_id_transaction_detail_page_td_3",
+                        htmlRowIndex1,
+                      )}
+                      className="px-5 py-4 text-right tabular-nums"
+                    >
                       {number(Number(item.quantity), item.asset.decimal_places)}{" "}
                       {item.asset.unit}
                     </td>
-                    <td className="px-5 py-4 text-right tabular-nums">
+                    <td
+                      id={htmlId(
+                        "transaction_id_transaction_detail_page_td_4",
+                        htmlRowIndex1,
+                      )}
+                      className="px-5 py-4 text-right tabular-nums"
+                    >
                       {item.unit_value == null
                         ? "—"
                         : number(Number(item.unit_value))}
@@ -215,30 +355,71 @@ export default async function TransactionDetailPage({
             </table>
           </div>
         </section>
-        <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
+        <section
+          id={htmlId("transaction_id_transaction_detail_page_section_3")}
+          className="border-input mt-8 rounded-xl border p-5 sm:p-6"
+        >
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">หลักฐาน</h2>
+            <h2
+              id={htmlId("transaction_id_transaction_detail_page_h2")}
+              className="text-lg font-semibold"
+            >
+              หลักฐาน
+            </h2>
             <span className="text-muted-foreground text-sm">
               {attachments?.length ?? 0} ไฟล์
             </span>
           </div>
           {attachments?.length ? (
-            <ul className="mt-4 divide-y">
-              {attachments.map((attachment) => (
+            <ul
+              id={htmlId("transaction_id_transaction_detail_page_ul")}
+              className="mt-4 divide-y"
+            >
+              {attachments.map((attachment, htmlRowIndex2) => (
                 <li
+                  id={htmlId(
+                    "transaction_id_transaction_detail_page_li",
+                    htmlRowIndex2,
+                  )}
                   key={attachment.id}
                   className="flex items-center justify-between gap-4 py-3"
                 >
                   <div>
-                    <p className="font-medium">{attachment.original_name}</p>
-                    <p className="text-muted-foreground text-xs">
+                    <p
+                      id={htmlId(
+                        "transaction_id_transaction_detail_page_attachment_original_name",
+                        htmlRowIndex2,
+                      )}
+                      className="font-medium"
+                    >
+                      {attachment.original_name}
+                    </p>
+                    <p
+                      id={htmlId(
+                        "transaction_id_transaction_detail_page_kb",
+                        htmlRowIndex2,
+                      )}
+                      className="text-muted-foreground text-xs"
+                    >
                       {attachment.mime_type} ·{" "}
                       {number(attachment.file_size / 1024, 1)} KB
                     </p>
                   </div>
                   {signedUrls.get(attachment.storage_path) && (
-                    <Button asChild size="sm" variant="outline">
+                    <Button
+                      id={htmlId(
+                        "transaction_id_transaction_detail_page_button",
+                        htmlRowIndex2,
+                      )}
+                      asChild
+                      size="sm"
+                      variant="outline"
+                    >
                       <a
+                        id={htmlId(
+                          "transaction_id_transaction_detail_page_a",
+                          htmlRowIndex2,
+                        )}
                         href={
                           signedUrls.get(attachment.storage_path) ?? undefined
                         }
@@ -253,7 +434,10 @@ export default async function TransactionDetailPage({
               ))}
             </ul>
           ) : (
-            <p className="text-muted-foreground mt-4 text-sm">
+            <p
+              id={htmlId("transaction_id_transaction_detail_page_p_7")}
+              className="text-muted-foreground mt-4 text-sm"
+            >
               ยังไม่มีหลักฐาน
             </p>
           )}

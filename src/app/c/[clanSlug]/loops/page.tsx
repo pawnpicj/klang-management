@@ -9,6 +9,7 @@ import {
 } from "@/components/clan/loop-management";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -101,17 +102,29 @@ export default async function LoopsPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-6">
+      <main
+        id={htmlId("loops_loops_page_main")}
+        className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-6"
+      >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <Link
+              id={htmlId("loops_loops_page_dashboard")}
               href={`/c/${clan.slug}/dashboard`}
               className="text-primary text-sm hover:underline"
             >
               ← กลับ Dashboard
             </Link>
-            <h1 className="mt-3 text-3xl font-bold">Loop</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1
+              id={htmlId("loops_loops_page_loop")}
+              className="mt-3 text-3xl font-bold"
+            >
+              Loop
+            </h1>
+            <p
+              id={htmlId("loops_loops_page_p")}
+              className="text-muted-foreground mt-1"
+            >
               บันทึกรอบเวลาแบบนับถอยหลังหรือเวลาที่กำหนด
             </p>
           </div>
@@ -132,7 +145,7 @@ export default async function LoopsPage({
           query.deleted === "1") && (
           <ActionNotice
             queryKeys={["created", "checkpoint", "stepRemoved", "deleted"]}
-            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
           >
             {query.created === "1"
               ? "สร้างหัวข้อ Loop แล้ว"
@@ -145,16 +158,22 @@ export default async function LoopsPage({
         )}
         {query.error && (
           <p
-            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-700"
+            id={htmlId("loops_loops_page_p_2")}
+            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200"
             role="alert"
           >
             ทำรายการไม่สำเร็จ กรุณาลองใหม่
           </p>
         )}
 
-        <section className="mt-8">
+        <section id={htmlId("loops_loops_page_section")} className="mt-8">
           <div className="mb-4 flex items-center justify-between gap-4">
-            <h2 className="text-xl font-semibold">Loop ที่กำลังทำงาน</h2>
+            <h2
+              id={htmlId("loops_loops_page_loop_2")}
+              className="text-xl font-semibold"
+            >
+              Loop ที่กำลังทำงาน
+            </h2>
             <span className="text-muted-foreground text-sm">
               {activeLoops.length} รายการ
             </span>
@@ -167,8 +186,17 @@ export default async function LoopsPage({
         </section>
 
         <div className="mt-8">
-          <Button asChild variant="outline">
-            <Link href={`/c/${clan.slug}/dashboard`}>กลับ Dashboard</Link>
+          <Button
+            id={htmlId("loops_loops_page_button")}
+            asChild
+            variant="outline"
+          >
+            <Link
+              id={htmlId("loops_loops_page_dashboard_2")}
+              href={`/c/${clan.slug}/dashboard`}
+            >
+              กลับ Dashboard
+            </Link>
           </Button>
         </div>
       </main>

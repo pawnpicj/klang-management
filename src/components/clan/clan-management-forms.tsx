@@ -14,6 +14,8 @@ import {
 import { SocialLogo } from "@/components/clan/social-logo";
 import { socialPlatforms } from "@/features/clans/social-links";
 import { initialClanState } from "@/features/clans/state";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
 
 function PendingButton({
   children,
@@ -30,9 +32,12 @@ function PendingButton({
   className?: string;
   title?: string;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
     <Button
+      id={htmlId("clan_pending_button_button", htmlIdPrefix)}
       type="submit"
       variant={variant}
       size={size}
@@ -46,8 +51,11 @@ function PendingButton({
 }
 
 export function ArchiveClanButton({ clanSlug }: { clanSlug: string }) {
+  const htmlIdPrefix = useHtmlId();
+
   return (
     <form
+      id={htmlId("clan_archive_clan_button_form", htmlIdPrefix)}
       action={archiveClanAction}
       onSubmit={(event) => {
         if (
@@ -59,7 +67,12 @@ export function ArchiveClanButton({ clanSlug }: { clanSlug: string }) {
         }
       }}
     >
-      <input type="hidden" name="clanSlug" value={clanSlug} />
+      <input
+        id={htmlId("clan_archive_clan_button_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
       <PendingButton
         variant="destructive"
         size="sm"
@@ -93,13 +106,28 @@ export function ClanSettingsForm({
     tiktokUrl: string | null;
   };
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(updateClanAction, initialClanState);
   return (
-    <form action={action} className="space-y-5">
-      <input type="hidden" name="clanSlug" value={clanSlug} />
-      <label className="block text-sm font-medium">
+    <form
+      id={htmlId("clan_clan_settings_form_form", htmlIdPrefix)}
+      action={action}
+      className="space-y-5"
+    >
+      <input
+        id={htmlId("clan_clan_settings_form_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
+      <label
+        id={htmlId("clan_clan_settings_form_clan_gang", htmlIdPrefix)}
+        className="block text-sm font-medium"
+      >
         ชื่อ Clan/Gang
         <input
+          id={htmlId("clan_clan_settings_form_name", htmlIdPrefix)}
           className="border-input bg-background focus-visible:ring-ring mt-1 h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
           name="name"
           defaultValue={name}
@@ -112,9 +140,13 @@ export function ClanSettingsForm({
           </span>
         )}
       </label>
-      <label className="block text-sm font-medium">
+      <label
+        id={htmlId("clan_clan_settings_form_label", htmlIdPrefix)}
+        className="block text-sm font-medium"
+      >
         ประเภท
         <select
+          id={htmlId("clan_clan_settings_form_type", htmlIdPrefix)}
           className="border-input bg-background focus-visible:ring-ring mt-1 h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
           name="type"
           defaultValue={type}
@@ -123,9 +155,13 @@ export function ClanSettingsForm({
           <option value="GANG">Gang</option>
         </select>
       </label>
-      <label className="block text-sm font-medium">
+      <label
+        id={htmlId("clan_clan_settings_form_note", htmlIdPrefix)}
+        className="block text-sm font-medium"
+      >
         Note
         <textarea
+          id={htmlId("clan_clan_settings_form_note_2", htmlIdPrefix)}
           className="border-input bg-background focus-visible:ring-ring mt-1 min-h-28 w-full resize-y rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2"
           name="note"
           defaultValue={note ?? ""}
@@ -138,9 +174,13 @@ export function ClanSettingsForm({
           </span>
         )}
       </label>
-      <label className="block text-sm font-medium">
+      <label
+        id={htmlId("clan_clan_settings_form_rule", htmlIdPrefix)}
+        className="block text-sm font-medium"
+      >
         Rule
         <textarea
+          id={htmlId("clan_clan_settings_form_rules", htmlIdPrefix)}
           className="border-input bg-background focus-visible:ring-ring mt-1 min-h-40 w-full resize-y rounded-md border px-3 py-2 text-base outline-none focus-visible:ring-2"
           name="rules"
           defaultValue={rules ?? ""}
@@ -155,8 +195,16 @@ export function ClanSettingsForm({
       </label>
       <fieldset className="space-y-4">
         <legend className="mb-3 font-semibold">Social Media</legend>
-        {socialPlatforms.map((platform) => (
-          <label key={platform.key} className="block text-sm font-medium">
+        {socialPlatforms.map((platform, htmlRowIndex1) => (
+          <label
+            id={htmlId(
+              "clan_clan_settings_form_label_2",
+              htmlIdPrefix,
+              htmlRowIndex1,
+            )}
+            key={platform.key}
+            className="block text-sm font-medium"
+          >
             <span className="flex items-center gap-2">
               <span className="[&>svg]:size-5">
                 <SocialLogo platform={platform.key} />
@@ -164,6 +212,11 @@ export function ClanSettingsForm({
               {platform.label}
             </span>
             <input
+              id={htmlId(
+                "clan_clan_settings_form_input",
+                htmlIdPrefix,
+                htmlRowIndex1,
+              )}
               type="url"
               name={platform.key}
               defaultValue={socialLinks[platform.key] ?? ""}
@@ -181,6 +234,7 @@ export function ClanSettingsForm({
       </fieldset>
       {state.message && (
         <p
+          id={htmlId("clan_clan_settings_form_state_message", htmlIdPrefix)}
           className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
           role="alert"
         >
@@ -201,16 +255,36 @@ export function MemberRowActions({
   memberId: string;
   characterName: string;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     updateClanMemberAction,
     initialClanState,
   );
   return (
     <div className="relative flex items-end gap-2">
-      <form action={action} className="flex min-w-0 flex-1 gap-2">
-        <input type="hidden" name="clanSlug" value={clanSlug} />
-        <input type="hidden" name="memberId" value={memberId} />
-        <label className="sr-only" htmlFor={`member-${memberId}`}>
+      <form
+        id={htmlId("clan_member_row_actions_form", htmlIdPrefix)}
+        action={action}
+        className="flex min-w-0 flex-1 gap-2"
+      >
+        <input
+          id={htmlId("clan_member_row_actions_clan_slug", htmlIdPrefix)}
+          type="hidden"
+          name="clanSlug"
+          value={clanSlug}
+        />
+        <input
+          id={htmlId("clan_member_row_actions_member_id", htmlIdPrefix)}
+          type="hidden"
+          name="memberId"
+          value={memberId}
+        />
+        <label
+          id={htmlId("clan_member_row_actions_label", htmlIdPrefix)}
+          className="sr-only"
+          htmlFor={`member-${memberId}`}
+        >
           ชื่อตัวละคร
         </label>
         <input
@@ -233,6 +307,7 @@ export function MemberRowActions({
         </PendingButton>
       </form>
       <form
+        id={htmlId("clan_member_row_actions_form_2", htmlIdPrefix)}
         action={removeClanMemberAction}
         onSubmit={(event) => {
           if (!window.confirm(`ยืนยันนำ ${characterName} ออกจาก Clan/Gang?`)) {
@@ -240,8 +315,18 @@ export function MemberRowActions({
           }
         }}
       >
-        <input type="hidden" name="clanSlug" value={clanSlug} />
-        <input type="hidden" name="memberId" value={memberId} />
+        <input
+          id={htmlId("clan_member_row_actions_clan_slug_2", htmlIdPrefix)}
+          type="hidden"
+          name="clanSlug"
+          value={clanSlug}
+        />
+        <input
+          id={htmlId("clan_member_row_actions_member_id_2", htmlIdPrefix)}
+          type="hidden"
+          name="memberId"
+          value={memberId}
+        />
         <PendingButton
           variant="destructive"
           size="sm"
@@ -254,7 +339,11 @@ export function MemberRowActions({
         </PendingButton>
       </form>
       {state.message && (
-        <p className="absolute top-full mt-2 text-sm text-red-600" role="alert">
+        <p
+          id={htmlId("clan_member_row_actions_state_message", htmlIdPrefix)}
+          className="absolute top-full mt-2 text-sm text-red-600"
+          role="alert"
+        >
           {state.message}
         </p>
       )}
@@ -273,6 +362,8 @@ export function MemberRoleForm({
   roleId: string;
   roles: { id: string; name: string }[];
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     updateClanMemberRoleAction,
     initialClanState,
@@ -280,10 +371,28 @@ export function MemberRoleForm({
 
   return (
     <div>
-      <form action={action} className="flex min-w-48 items-center gap-2">
-        <input type="hidden" name="clanSlug" value={clanSlug} />
-        <input type="hidden" name="memberId" value={memberId} />
-        <label className="sr-only" htmlFor={`role-${memberId}`}>
+      <form
+        id={htmlId("clan_member_role_form_form", htmlIdPrefix)}
+        action={action}
+        className="flex min-w-48 items-center gap-2"
+      >
+        <input
+          id={htmlId("clan_member_role_form_clan_slug", htmlIdPrefix)}
+          type="hidden"
+          name="clanSlug"
+          value={clanSlug}
+        />
+        <input
+          id={htmlId("clan_member_role_form_member_id", htmlIdPrefix)}
+          type="hidden"
+          name="memberId"
+          value={memberId}
+        />
+        <label
+          id={htmlId("clan_member_role_form_role", htmlIdPrefix)}
+          className="sr-only"
+          htmlFor={`role-${memberId}`}
+        >
           Role
         </label>
         <select
@@ -310,7 +419,11 @@ export function MemberRoleForm({
         </PendingButton>
       </form>
       {state.message && (
-        <p className="mt-2 max-w-56 text-xs text-red-600" role="alert">
+        <p
+          id={htmlId("clan_member_role_form_state_message", htmlIdPrefix)}
+          className="mt-2 max-w-56 text-xs text-red-600"
+          role="alert"
+        >
           {state.message}
         </p>
       )}

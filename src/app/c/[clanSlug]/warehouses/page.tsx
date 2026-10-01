@@ -8,6 +8,7 @@ import {
 } from "@/components/clan/inventory-management-forms";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -81,33 +82,57 @@ export default async function WarehousesPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("warehouses_warehouses_page_main")}
+        className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6"
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <Link
+              id={htmlId("warehouses_warehouses_page_dashboard")}
               href={`/c/${clan.slug}/dashboard`}
               className="text-primary text-sm font-medium hover:underline"
             >
               ← กลับ Dashboard
             </Link>
-            <h1 className="mt-4 text-3xl font-bold">Warehouses</h1>
-            <p className="text-muted-foreground mt-2">คลังของ {clan.name}</p>
+            <h1
+              id={htmlId("warehouses_warehouses_page_warehouses")}
+              className="mt-4 text-3xl font-bold"
+            >
+              Warehouses
+            </h1>
+            <p
+              id={htmlId("warehouses_warehouses_page_clan_name")}
+              className="text-muted-foreground mt-2"
+            >
+              คลังของ {clan.name}
+            </p>
           </div>
-          <Button asChild variant="outline">
-            <Link href={`/c/${clan.slug}/assets`}>Assets</Link>
+          <Button
+            id={htmlId("warehouses_warehouses_page_button")}
+            asChild
+            variant="outline"
+          >
+            <Link
+              id={htmlId("warehouses_warehouses_page_assets")}
+              href={`/c/${clan.slug}/assets`}
+            >
+              Assets
+            </Link>
           </Button>
         </div>
         {notice && (
           <ActionNotice
             queryKeys={["created", "updated", "defaultChanged", "deactivated"]}
-            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
           >
             {notice}
           </ActionNotice>
         )}
         {query.error && (
           <p
-            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-800"
+            id={htmlId("warehouses_warehouses_page_p")}
+            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
             role="alert"
           >
             {query.error === "warehouse-balance"
@@ -116,25 +141,47 @@ export default async function WarehousesPage({
           </p>
         )}
         {canCreate && (
-          <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
-            <h2 className="text-lg font-semibold">สร้าง Warehouse</h2>
+          <section
+            id={htmlId("warehouses_warehouses_page_section")}
+            className="border-input mt-8 rounded-xl border p-5 sm:p-6"
+          >
+            <h2
+              id={htmlId("warehouses_warehouses_page_warehouse")}
+              className="text-lg font-semibold"
+            >
+              สร้าง Warehouse
+            </h2>
             <div className="mt-5">
               <CreateWarehouseForm clanSlug={clan.slug} />
             </div>
           </section>
         )}
-        <section className="mt-8 space-y-4">
+        <section
+          id={htmlId("warehouses_warehouses_page_section_2")}
+          className="mt-8 space-y-4"
+        >
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Warehouse ทั้งหมด</h2>
+            <h2
+              id={htmlId("warehouses_warehouses_page_warehouse_2")}
+              className="text-xl font-semibold"
+            >
+              Warehouse ทั้งหมด
+            </h2>
             <span className="text-muted-foreground text-sm">
               {warehouses?.length ?? 0} แห่ง
             </span>
           </div>
           {error ? (
-            <p className="text-sm text-red-600">โหลด Warehouses ไม่สำเร็จ</p>
+            <p
+              id={htmlId("warehouses_warehouses_page_warehouses_2")}
+              className="text-sm text-red-600"
+            >
+              โหลด Warehouses ไม่สำเร็จ
+            </p>
           ) : (
-            warehouses?.map((warehouse) => (
+            warehouses?.map((warehouse, htmlRowIndex1) => (
               <article
+                id={htmlId("warehouses_warehouses_page_article", htmlRowIndex1)}
                 key={warehouse.id}
                 className="border-input rounded-xl border p-5 sm:p-6"
               >
@@ -142,18 +189,28 @@ export default async function WarehousesPage({
                   <div>
                     <div className="flex items-center gap-2">
                       <Link
+                        id={htmlId(
+                          "warehouses_warehouses_page_warehouse_name",
+                          htmlRowIndex1,
+                        )}
                         href={`/c/${clan.slug}/warehouses/${warehouse.id}`}
                         className="text-lg font-semibold hover:underline"
                       >
                         {warehouse.name}
                       </Link>
                       {warehouse.is_default && (
-                        <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs text-amber-800">
+                        <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs text-amber-800 dark:bg-amber-900 dark:text-amber-200">
                           Default
                         </span>
                       )}
                     </div>
-                    <p className="text-muted-foreground mt-2 text-sm">
+                    <p
+                      id={htmlId(
+                        "warehouses_warehouses_page_asset",
+                        htmlRowIndex1,
+                      )}
+                      className="text-muted-foreground mt-2 text-sm"
+                    >
                       {warehouse.description || "ไม่มีคำอธิบาย"} ·{" "}
                       {balanceCounts.get(warehouse.id) ?? 0} Asset ที่มียอด
                     </p>

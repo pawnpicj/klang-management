@@ -4,6 +4,8 @@ import { AppHeader } from "@/components/clan/app-header";
 import { CraftSettingsForm } from "@/components/clan/craft-settings-form";
 import { ActionNotice } from "@/components/ui/action-notice";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
+
 export const dynamic = "force-dynamic";
 export default async function CraftSettingsPage({
   params,
@@ -54,23 +56,35 @@ export default async function CraftSettingsPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("settings_craft_settings_page_main")}
+        className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-6"
+      >
         <Link
+          id={htmlId("settings_craft_settings_page_craft_item")}
           className="text-primary text-sm hover:underline"
           href={`/c/${clan.slug}/craft-item`}
         >
           ← กลับ Craft Item
         </Link>
-        <h1 className="mt-4 text-3xl font-bold">ตั้งค่า Craft Item</h1>
+        <h1
+          id={htmlId("settings_craft_settings_page_craft_item_2")}
+          className="mt-4 text-3xl font-bold"
+        >
+          ตั้งค่า Craft Item
+        </h1>
         {query.saved === "1" && (
           <ActionNotice
             queryKeys={["saved"]}
-            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
           >
             บันทึกการตั้งค่าแล้ว
           </ActionNotice>
         )}
-        <section className="border-input mt-6 rounded-xl border p-5">
+        <section
+          id={htmlId("settings_craft_settings_page_section")}
+          className="border-input mt-6 rounded-xl border p-5"
+        >
           <CraftSettingsForm
             key={selected}
             clanSlug={clan.slug}

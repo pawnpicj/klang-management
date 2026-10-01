@@ -18,6 +18,8 @@ import {
   avatarMimeTypes,
   getAvatarValidationError,
 } from "@/features/auth/avatar";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
 
 const inputClass =
   "border-input bg-background focus-visible:ring-ring mt-1 h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2";
@@ -39,12 +41,18 @@ function Field({
   defaultValue?: string | null;
   state: AuthActionState;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const error = state.fieldErrors?.[name]?.[0];
   const errorId = `${name}-error`;
   return (
-    <label className="block text-sm font-medium">
+    <label
+      id={htmlId("auth_field_label", htmlIdPrefix)}
+      className="block text-sm font-medium"
+    >
       {label}
       <input
+        id={htmlId("auth_field_input", htmlIdPrefix)}
         className={inputClass}
         name={name}
         type={type}
@@ -64,9 +72,12 @@ function Field({
 }
 
 function Message({ state }: { state: AuthActionState }) {
+  const htmlIdPrefix = useHtmlId();
+
   if (!state.message) return null;
   return (
     <p
+      id={htmlId("auth_message_state_message", htmlIdPrefix)}
       className={`rounded-md p-3 text-sm ${
         state.status === "success"
           ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
@@ -80,9 +91,16 @@ function Message({ state }: { state: AuthActionState }) {
 }
 
 function SubmitButton({ children }: { children: React.ReactNode }) {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
-    <Button className="w-full" type="submit" disabled={pending}>
+    <Button
+      id={htmlId("auth_submit_button_button", htmlIdPrefix)}
+      className="w-full"
+      type="submit"
+      disabled={pending}
+    >
       {pending ? "กำลังดำเนินการ…" : children}
     </Button>
   );
@@ -97,20 +115,35 @@ export function LoginForm({
   passwordWasReset?: boolean;
   callbackFailed?: boolean;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     loginWithUsernameAction,
     initialAuthState,
   );
   return (
-    <form action={action} className="space-y-5">
-      <input type="hidden" name="next" value={next} />
+    <form
+      id={htmlId("auth_login_form_form", htmlIdPrefix)}
+      action={action}
+      className="space-y-5"
+    >
+      <input
+        id={htmlId("auth_login_form_next", htmlIdPrefix)}
+        type="hidden"
+        name="next"
+        value={next}
+      />
       {passwordWasReset && (
-        <p className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+        <p
+          id={htmlId("auth_login_form_p", htmlIdPrefix)}
+          className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
+        >
           ตั้งรหัสผ่านใหม่แล้ว กรุณาเข้าสู่ระบบ
         </p>
       )}
       {callbackFailed && (
         <p
+          id={htmlId("auth_login_form_p_2", htmlIdPrefix)}
           className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
           role="alert"
         >
@@ -134,12 +167,14 @@ export function LoginForm({
       <SubmitButton>เข้าสู่ระบบ</SubmitButton>
       <div className="flex justify-between gap-4 text-sm">
         <Link
+          id={htmlId("auth_login_form_register", htmlIdPrefix)}
           className="text-primary underline-offset-4 hover:underline"
           href="/register"
         >
           สมัครสมาชิก
         </Link>
         <Link
+          id={htmlId("auth_login_form_forgot_password", htmlIdPrefix)}
           className="text-primary underline-offset-4 hover:underline"
           href="/forgot-password"
         >
@@ -151,9 +186,15 @@ export function LoginForm({
 }
 
 export function RegisterForm() {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(registerAction, initialAuthState);
   return (
-    <form action={action} className="space-y-5">
+    <form
+      id={htmlId("auth_register_form_form", htmlIdPrefix)}
+      action={action}
+      className="space-y-5"
+    >
       <Field
         label="ชื่อผู้ใช้"
         name="username"
@@ -189,9 +230,13 @@ export function RegisterForm() {
       />
       <Message state={state} />
       <SubmitButton>สร้างบัญชี</SubmitButton>
-      <p className="text-muted-foreground text-center text-sm">
+      <p
+        id={htmlId("auth_register_form_p", htmlIdPrefix)}
+        className="text-muted-foreground text-center text-sm"
+      >
         มีบัญชีแล้ว?{" "}
         <Link
+          id={htmlId("auth_register_form_login", htmlIdPrefix)}
           className="text-primary underline-offset-4 hover:underline"
           href="/login"
         >
@@ -203,12 +248,18 @@ export function RegisterForm() {
 }
 
 export function ForgotPasswordForm() {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     forgotPasswordAction,
     initialAuthState,
   );
   return (
-    <form action={action} className="space-y-5">
+    <form
+      id={htmlId("auth_forgot_password_form_form", htmlIdPrefix)}
+      action={action}
+      className="space-y-5"
+    >
       <Field
         label="อีเมล"
         name="email"
@@ -218,8 +269,12 @@ export function ForgotPasswordForm() {
       />
       <Message state={state} />
       <SubmitButton>ส่งลิงก์ตั้งรหัสผ่านใหม่</SubmitButton>
-      <p className="text-center text-sm">
+      <p
+        id={htmlId("auth_forgot_password_form_p", htmlIdPrefix)}
+        className="text-center text-sm"
+      >
         <Link
+          id={htmlId("auth_forgot_password_form_login", htmlIdPrefix)}
           className="text-primary underline-offset-4 hover:underline"
           href="/login"
         >
@@ -231,9 +286,15 @@ export function ForgotPasswordForm() {
 }
 
 export function ResetPasswordForm() {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(resetPasswordAction, initialAuthState);
   return (
-    <form action={action} className="space-y-5">
+    <form
+      id={htmlId("auth_reset_password_form_form", htmlIdPrefix)}
+      action={action}
+      className="space-y-5"
+    >
       <Field
         label="รหัสผ่านใหม่"
         name="password"
@@ -261,6 +322,8 @@ export function ProfileForm({
   displayName: string;
   avatarPreviewUrl: string | null;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(updateProfileAction, initialAuthState);
   const [previewUrl, setPreviewUrl] = useState(avatarPreviewUrl);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -290,7 +353,11 @@ export function ProfileForm({
 
   const avatarError = fileError ?? state.fieldErrors?.avatar?.[0];
   return (
-    <form action={action} className="space-y-5">
+    <form
+      id={htmlId("auth_profile_form_form", htmlIdPrefix)}
+      action={action}
+      className="space-y-5"
+    >
       <Field
         label="ชื่อที่แสดง"
         name="displayName"
@@ -299,9 +366,13 @@ export function ProfileForm({
         state={state}
       />
       <div className="space-y-3">
-        <label className="block text-sm font-medium">
+        <label
+          id={htmlId("auth_profile_form_label", htmlIdPrefix)}
+          className="block text-sm font-medium"
+        >
           รูปโปรไฟล์
           <input
+            id={htmlId("auth_profile_form_avatar", htmlIdPrefix)}
             className={`${inputClass} cursor-pointer py-2 file:mr-3 file:rounded file:border-0 file:bg-emerald-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-emerald-900`}
             name="avatar"
             type="file"
@@ -322,6 +393,7 @@ export function ProfileForm({
         {previewUrl && (
           <div className="border-input relative size-32 overflow-hidden rounded-xl border bg-white">
             <Image
+              id={htmlId("auth_profile_form_image", htmlIdPrefix)}
               src={previewUrl}
               alt="ตัวอย่างรูปโปรไฟล์"
               fill

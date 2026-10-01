@@ -17,6 +17,8 @@ import {
   updateDeliveryAction,
 } from "@/features/deliveries/actions";
 import { initialClanState } from "@/features/clans/state";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
 
 const number = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 4 });
 const fieldClass =
@@ -50,18 +52,27 @@ type DeliveryHistory = {
 };
 
 function SubmitButton() {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button
+      id={htmlId("clan_submit_button_button", htmlIdPrefix)}
+      type="submit"
+      disabled={pending}
+    >
       {pending ? "กำลังบันทึก…" : "บันทึกการส่ง"}
     </Button>
   );
 }
 
 function UpdateButton() {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
     <Button
+      id={htmlId("clan_update_button_button", htmlIdPrefix)}
       type="submit"
       size="sm"
       className="size-10 px-0"
@@ -87,17 +98,37 @@ function DeliveryForm({
   today: string;
   close: () => void;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     recordDeliveryAction,
     initialClanState,
   );
   return (
-    <form action={action} className="space-y-4">
-      <input type="hidden" name="clanSlug" value={clanSlug} />
-      <input type="hidden" name="memberId" value={member.id} />
-      <label className="block text-sm font-medium">
+    <form
+      id={htmlId("clan_delivery_form_form", htmlIdPrefix)}
+      action={action}
+      className="space-y-4"
+    >
+      <input
+        id={htmlId("clan_delivery_form_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
+      <input
+        id={htmlId("clan_delivery_form_member_id", htmlIdPrefix)}
+        type="hidden"
+        name="memberId"
+        value={member.id}
+      />
+      <label
+        id={htmlId("clan_delivery_form_label", htmlIdPrefix)}
+        className="block text-sm font-medium"
+      >
         วันที่
         <input
+          id={htmlId("clan_delivery_form_delivery_date", htmlIdPrefix)}
           name="deliveryDate"
           type="date"
           defaultValue={today}
@@ -108,8 +139,13 @@ function DeliveryForm({
       </label>
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium">Assets ที่ส่ง</legend>
-        {assets.map((asset) => (
+        {assets.map((asset, htmlRowIndex1) => (
           <label
+            id={htmlId(
+              "clan_delivery_form_label_2",
+              htmlIdPrefix,
+              htmlRowIndex1,
+            )}
             key={asset.id}
             className="border-input grid gap-3 rounded-lg border p-3 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-center"
           >
@@ -125,8 +161,22 @@ function DeliveryForm({
             </span>
             <span>
               <span className="sr-only">จำนวน {asset.name}</span>
-              <input type="hidden" name="assetId" value={asset.id} />
               <input
+                id={htmlId(
+                  "clan_delivery_form_asset_id",
+                  htmlIdPrefix,
+                  htmlRowIndex1,
+                )}
+                type="hidden"
+                name="assetId"
+                value={asset.id}
+              />
+              <input
+                id={htmlId(
+                  "clan_delivery_form_quantity",
+                  htmlIdPrefix,
+                  htmlRowIndex1,
+                )}
                 name="quantity"
                 type="number"
                 min="0.0001"
@@ -140,12 +190,21 @@ function DeliveryForm({
         ))}
       </fieldset>
       {state.message && (
-        <p className="text-sm text-red-600" role="alert">
+        <p
+          id={htmlId("clan_delivery_form_state_message", htmlIdPrefix)}
+          className="text-sm text-red-600"
+          role="alert"
+        >
           {state.message}
         </p>
       )}
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={close}>
+        <Button
+          id={htmlId("clan_delivery_form_button", htmlIdPrefix)}
+          type="button"
+          variant="outline"
+          onClick={close}
+        >
           ยกเลิก
         </Button>
         <SubmitButton />
@@ -165,6 +224,8 @@ function DeliveryHistoryEditor({
   assets: AssetOption[];
   today: string;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     updateDeliveryAction,
     initialClanState,
@@ -172,14 +233,32 @@ function DeliveryHistoryEditor({
 
   return (
     <form
+      id={htmlId("clan_delivery_history_editor_form", htmlIdPrefix)}
       action={action}
       className="border-input grid gap-2 rounded-lg border p-3 sm:grid-cols-[8.5rem_minmax(0,1fr)_7rem_auto] sm:items-end"
     >
-      <input type="hidden" name="clanSlug" value={clanSlug} />
-      <input type="hidden" name="deliveryId" value={delivery.id} />
-      <label className="text-xs font-medium">
+      <input
+        id={htmlId("clan_delivery_history_editor_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
+      <input
+        id={htmlId("clan_delivery_history_editor_delivery_id", htmlIdPrefix)}
+        type="hidden"
+        name="deliveryId"
+        value={delivery.id}
+      />
+      <label
+        id={htmlId("clan_delivery_history_editor_label", htmlIdPrefix)}
+        className="text-xs font-medium"
+      >
         วันที่
         <input
+          id={htmlId(
+            "clan_delivery_history_editor_delivery_date",
+            htmlIdPrefix,
+          )}
           name="deliveryDate"
           type="date"
           defaultValue={delivery.deliveryDate}
@@ -188,9 +267,13 @@ function DeliveryHistoryEditor({
           className={fieldClass}
         />
       </label>
-      <label className="text-xs font-medium">
+      <label
+        id={htmlId("clan_delivery_history_editor_asset", htmlIdPrefix)}
+        className="text-xs font-medium"
+      >
         Asset
         <select
+          id={htmlId("clan_delivery_history_editor_asset_id", htmlIdPrefix)}
           name="assetId"
           defaultValue={delivery.assetId}
           required
@@ -203,9 +286,13 @@ function DeliveryHistoryEditor({
           ))}
         </select>
       </label>
-      <label className="text-xs font-medium">
+      <label
+        id={htmlId("clan_delivery_history_editor_label_2", htmlIdPrefix)}
+        className="text-xs font-medium"
+      >
         จำนวน
         <input
+          id={htmlId("clan_delivery_history_editor_quantity", htmlIdPrefix)}
           name="quantity"
           type="number"
           min="0.0001"
@@ -219,6 +306,7 @@ function DeliveryHistoryEditor({
       <div className="flex gap-2">
         <UpdateButton />
         <Button
+          id={htmlId("clan_delivery_history_editor_button", htmlIdPrefix)}
           type="submit"
           size="sm"
           variant="destructive"
@@ -237,7 +325,14 @@ function DeliveryHistoryEditor({
         </Button>
       </div>
       {state.message && (
-        <p className="text-sm text-red-600 sm:col-span-4" role="alert">
+        <p
+          id={htmlId(
+            "clan_delivery_history_editor_state_message",
+            htmlIdPrefix,
+          )}
+          className="text-sm text-red-600 sm:col-span-4"
+          role="alert"
+        >
           {state.message}
         </p>
       )}
@@ -260,6 +355,8 @@ export function DeliveryTable({
   today: string;
   canManage: boolean;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [selected, setSelected] = useState<MemberRow | null>(null);
   const open = (member: MemberRow) => {
@@ -274,21 +371,69 @@ export function DeliveryTable({
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-muted/50 text-muted-foreground">
-            <tr>
-              <th className="px-5 py-3 font-medium">สมาชิก</th>
-              <th className="px-5 py-3 font-medium">Role</th>
-              <th className="px-5 py-3 text-center font-medium">สถานะ</th>
-              <th className="px-5 py-3 font-medium">ขาดส่งอะไรบ้าง</th>
+        <table
+          id={htmlId("clan_delivery_table_table", htmlIdPrefix)}
+          className="w-full min-w-[720px] text-left text-sm"
+        >
+          <thead
+            id={htmlId("clan_delivery_table_thead", htmlIdPrefix)}
+            className="bg-muted/50 text-muted-foreground"
+          >
+            <tr id={htmlId("clan_delivery_table_tr", htmlIdPrefix)}>
+              <th
+                id={htmlId("clan_delivery_table_th", htmlIdPrefix)}
+                className="px-5 py-3 font-medium"
+              >
+                สมาชิก
+              </th>
+              <th
+                id={htmlId("clan_delivery_table_role", htmlIdPrefix)}
+                className="px-5 py-3 font-medium"
+              >
+                Role
+              </th>
+              <th
+                id={htmlId("clan_delivery_table_th_2", htmlIdPrefix)}
+                className="px-5 py-3 text-center font-medium"
+              >
+                สถานะ
+              </th>
+              <th
+                id={htmlId("clan_delivery_table_th_3", htmlIdPrefix)}
+                className="px-5 py-3 font-medium"
+              >
+                ขาดส่งอะไรบ้าง
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-input divide-y">
-            {members.map((member) => (
-              <tr key={member.id}>
-                <td className="px-5 py-4 font-medium">
+          <tbody
+            id={htmlId("clan_delivery_table_tbody", htmlIdPrefix)}
+            className="divide-input divide-y"
+          >
+            {members.map((member, htmlRowIndex2) => (
+              <tr
+                id={htmlId(
+                  "clan_delivery_table_tr_2",
+                  htmlIdPrefix,
+                  htmlRowIndex2,
+                )}
+                key={member.id}
+              >
+                <td
+                  id={htmlId(
+                    "clan_delivery_table_td",
+                    htmlIdPrefix,
+                    htmlRowIndex2,
+                  )}
+                  className="px-5 py-4 font-medium"
+                >
                   {canManage && assets.length ? (
                     <button
+                      id={htmlId(
+                        "clan_delivery_table_member_character_name",
+                        htmlIdPrefix,
+                        htmlRowIndex2,
+                      )}
                       type="button"
                       onClick={() => open(member)}
                       className="text-primary rounded-sm font-semibold hover:underline focus-visible:ring-2 focus-visible:outline-none"
@@ -299,8 +444,24 @@ export function DeliveryTable({
                     member.characterName
                   )}
                 </td>
-                <td className="px-5 py-4">{member.roleName}</td>
-                <td className="px-5 py-4 text-center">
+                <td
+                  id={htmlId(
+                    "clan_delivery_table_member_role_name",
+                    htmlIdPrefix,
+                    htmlRowIndex2,
+                  )}
+                  className="px-5 py-4"
+                >
+                  {member.roleName}
+                </td>
+                <td
+                  id={htmlId(
+                    "clan_delivery_table_td_2",
+                    htmlIdPrefix,
+                    htmlRowIndex2,
+                  )}
+                  className="px-5 py-4 text-center"
+                >
                   {member.complete ? (
                     <CheckCircle2
                       className="mx-auto size-5 text-emerald-600"
@@ -317,7 +478,14 @@ export function DeliveryTable({
                     </span>
                   )}
                 </td>
-                <td className="px-5 py-4">
+                <td
+                  id={htmlId(
+                    "clan_delivery_table_td_3",
+                    htmlIdPrefix,
+                    htmlRowIndex2,
+                  )}
+                  className="px-5 py-4"
+                >
                   {member.missingItems.length ? (
                     <div className="flex flex-wrap gap-2">
                       {member.missingItems.map((item) => (
@@ -330,7 +498,9 @@ export function DeliveryTable({
                       ))}
                     </div>
                   ) : (
-                    <span className="text-emerald-700">ครบแล้ว</span>
+                    <span className="text-emerald-700 dark:text-emerald-200">
+                      ครบแล้ว
+                    </span>
                   )}
                 </td>
               </tr>
@@ -339,6 +509,7 @@ export function DeliveryTable({
         </table>
       </div>
       <dialog
+        id={htmlId("clan_delivery_table_dialog", htmlIdPrefix)}
         ref={dialogRef}
         onClick={(event) => {
           if (event.target === event.currentTarget) close();
@@ -350,11 +521,18 @@ export function DeliveryTable({
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <PackageCheck className="text-primary mb-2 size-6" />
-                <h2 className="text-xl font-semibold">
+                <h2
+                  id={htmlId(
+                    "clan_delivery_table_selected_character_name",
+                    htmlIdPrefix,
+                  )}
+                  className="text-xl font-semibold"
+                >
                   ส่งของ: {selected.characterName}
                 </h2>
               </div>
               <button
+                id={htmlId("clan_delivery_table_button", htmlIdPrefix)}
                 type="button"
                 onClick={close}
                 className="hover:bg-muted rounded-md p-1"
@@ -364,6 +542,7 @@ export function DeliveryTable({
               </button>
             </div>
             <section
+              id={htmlId("clan_delivery_table_section", htmlIdPrefix)}
               className="bg-muted/50 mb-5 rounded-lg p-4"
               aria-labelledby="missing-deliveries-heading"
             >
@@ -385,7 +564,10 @@ export function DeliveryTable({
                   ))}
                 </div>
               ) : (
-                <p className="mt-2 text-sm font-medium text-emerald-700">
+                <p
+                  id={htmlId("clan_delivery_table_p", htmlIdPrefix)}
+                  className="mt-2 text-sm font-medium text-emerald-700 dark:text-emerald-200"
+                >
                   ส่งครบแล้ว
                 </p>
               )}
@@ -398,9 +580,17 @@ export function DeliveryTable({
               today={today}
               close={close}
             />
-            <section className="border-input mt-6 border-t pt-5">
+            <section
+              id={htmlId("clan_delivery_table_section_2", htmlIdPrefix)}
+              className="border-input mt-6 border-t pt-5"
+            >
               <div className="mb-3 flex items-center justify-between gap-4">
-                <h3 className="font-semibold">รายการที่บันทึกแล้ว</h3>
+                <h3
+                  id={htmlId("clan_delivery_table_h3", htmlIdPrefix)}
+                  className="font-semibold"
+                >
+                  รายการที่บันทึกแล้ว
+                </h3>
                 <span className="text-muted-foreground text-sm">
                   {selectedDeliveries.length} รายการ
                 </span>
@@ -418,7 +608,10 @@ export function DeliveryTable({
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-sm">
+                <p
+                  id={htmlId("clan_delivery_table_p_2", htmlIdPrefix)}
+                  className="text-muted-foreground text-sm"
+                >
                   ยังไม่มีรายการส่งของ
                 </p>
               )}

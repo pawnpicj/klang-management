@@ -4,10 +4,19 @@ import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { saveCraftSettingsAction } from "@/features/crafting/actions";
 import { initialClanState } from "@/features/clans/state";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
+
 function SaveButton({ disabled }: { disabled: boolean }) {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={disabled || pending}>
+    <Button
+      id={htmlId("clan_save_button_button", htmlIdPrefix)}
+      type="submit"
+      disabled={disabled || pending}
+    >
       {pending ? "กำลังบันทึก…" : "บันทึกการตั้งค่า"}
     </Button>
   );
@@ -21,16 +30,31 @@ export function CraftSettingsForm({
   warehouses: { id: string; name: string }[];
   selectedWarehouseId: string;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     saveCraftSettingsAction,
     initialClanState,
   );
   return (
-    <form action={action} className="space-y-5">
-      <input type="hidden" name="clanSlug" value={clanSlug} />
-      <label className="block text-sm font-medium">
+    <form
+      id={htmlId("clan_craft_settings_form_form", htmlIdPrefix)}
+      action={action}
+      className="space-y-5"
+    >
+      <input
+        id={htmlId("clan_craft_settings_form_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
+      <label
+        id={htmlId("clan_craft_settings_form_label", htmlIdPrefix)}
+        className="block text-sm font-medium"
+      >
         คลังสำหรับตรวจจำนวนที่มี
         <select
+          id={htmlId("clan_craft_settings_form_warehouse_id", htmlIdPrefix)}
           name="warehouseId"
           defaultValue={selectedWarehouseId}
           required
@@ -47,16 +71,26 @@ export function CraftSettingsForm({
           ))}
         </select>
       </label>
-      <p className="text-muted-foreground text-sm">
+      <p
+        id={htmlId("clan_craft_settings_form_clan_gang", htmlIdPrefix)}
+        className="text-muted-foreground text-sm"
+      >
         ใช้คลังนี้ตรวจจำนวนวัตถุดิบสำหรับสูตรของ Clan/Gang
       </p>
       {!warehouses.length && (
-        <p className="text-sm text-amber-700">
+        <p
+          id={htmlId("clan_craft_settings_form_p", htmlIdPrefix)}
+          className="text-sm text-amber-700 dark:text-amber-200"
+        >
           ยังไม่มีคลังที่เปิดใช้งาน กรุณาสร้างคลังก่อน
         </p>
       )}
       {state.message && (
-        <p role="alert" className="text-sm text-red-600">
+        <p
+          id={htmlId("clan_craft_settings_form_state_message", htmlIdPrefix)}
+          role="alert"
+          className="text-sm text-red-600"
+        >
           {state.message}
         </p>
       )}

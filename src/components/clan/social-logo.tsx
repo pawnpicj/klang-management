@@ -1,6 +1,10 @@
-import type { SocialPlatformKey } from "@/features/clans/social-links";
+import type { MemberSocialPlatformKey } from "@/features/clans/member-profile";
 
-export function SocialLogo({ platform }: { platform: SocialPlatformKey }) {
+export function SocialLogo({
+  platform,
+}: {
+  platform: MemberSocialPlatformKey;
+}) {
   if (platform === "discordUrl")
     return (
       <svg viewBox="0 0 40 40" className="size-7" aria-hidden="true">
@@ -58,6 +62,49 @@ export function SocialLogo({ platform }: { platform: SocialPlatformKey }) {
         <path
           d="M22 7h4c.4 3.3 2.2 5.3 5.5 5.9v4.3a13.3 13.3 0 0 1-5.5-2v10a8.4 8.4 0 1 1-8.4-8.4h1.1v4.4a4 4 0 1 0 3.3 4Z"
           fill="white"
+        />
+      </svg>
+    );
+  if (platform === "instagramUrl")
+    return (
+      <svg viewBox="0 0 40 40" className="size-7" aria-hidden="true">
+        <circle cx="20" cy="20" r="20" fill="#E1306C" />
+        <rect
+          x="9"
+          y="9"
+          width="22"
+          height="22"
+          rx="7"
+          fill="none"
+          stroke="white"
+          strokeWidth="2.5"
+        />
+        <circle
+          cx="20"
+          cy="20"
+          r="5.5"
+          fill="none"
+          stroke="white"
+          strokeWidth="2.5"
+        />
+        <circle cx="27" cy="13" r="1.7" fill="white" />
+      </svg>
+    );
+  if (platform === "youtubeUrl")
+    return (
+      <svg viewBox="0 0 40 40" className="size-7" aria-hidden="true">
+        <circle cx="20" cy="20" r="20" fill="#FF0000" />
+        <rect x="7" y="11" width="26" height="18" rx="5" fill="white" />
+        <path d="m17 15 8 5-8 5Z" fill="#FF0000" />
+      </svg>
+    );
+  if (platform === "kickUrl")
+    return (
+      <svg viewBox="0 0 40 40" className="size-7" aria-hidden="true">
+        <circle cx="20" cy="20" r="20" fill="#111111" />
+        <path
+          d="M10 8h7v9h4v-4h4V8h7v9h-4v6h4v9h-7v-5h-4v-4h-4v9h-7Z"
+          fill="#53FC18"
         />
       </svg>
     );

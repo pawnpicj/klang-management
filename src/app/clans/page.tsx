@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/clan/app-header";
 import { ArchiveClanButton } from "@/components/clan/clan-management-forms";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -56,19 +57,35 @@ export default async function ClansPage({
   return (
     <>
       <AppHeader />
-      <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("clans_clans_page_main")}
+        className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6"
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-primary text-sm font-semibold">พื้นที่ของฉัน</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight">
+            <p
+              id={htmlId("clans_clans_page_p")}
+              className="text-primary text-sm font-semibold"
+            >
+              พื้นที่ของฉัน
+            </p>
+            <h1
+              id={htmlId("clans_clans_page_clan_gang")}
+              className="mt-2 text-3xl font-bold tracking-tight"
+            >
               Clan และ Gang
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p
+              id={htmlId("clans_clans_page_p_2")}
+              className="text-muted-foreground mt-2"
+            >
               เลือกพื้นที่ที่ต้องการจัดการ หรือสร้างพื้นที่ใหม่
             </p>
           </div>
-          <Button asChild>
-            <Link href="/clans/new">สร้าง Clan/Gang</Link>
+          <Button id={htmlId("clans_clans_page_button")} asChild>
+            <Link id={htmlId("clans_clans_page_clans_new")} href="/clans/new">
+              สร้าง Clan/Gang
+            </Link>
           </Button>
         </div>
 
@@ -82,6 +99,7 @@ export default async function ClansPage({
         )}
         {query.error && (
           <p
+            id={htmlId("clans_clans_page_clan_gang_2")}
             className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
             role="alert"
           >
@@ -91,6 +109,7 @@ export default async function ClansPage({
 
         {error ? (
           <p
+            id={htmlId("clans_clans_page_p_3")}
             className="mt-8 rounded-xl bg-red-50 p-4 text-red-800 dark:bg-red-950 dark:text-red-200"
             role="alert"
           >
@@ -98,7 +117,7 @@ export default async function ClansPage({
           </p>
         ) : memberships?.length ? (
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {memberships.map((membership) => {
+            {memberships.map((membership, htmlRowIndex1) => {
               const canManage = ["Manager", "Leader"].includes(
                 membership.role.name,
               );
@@ -106,6 +125,7 @@ export default async function ClansPage({
               const ClanIcon = isClan ? UsersRound : Swords;
               return (
                 <article
+                  id={htmlId("clans_clans_page_article", htmlRowIndex1)}
                   key={membership.clan.id}
                   className={`rounded-xl border p-5 ${
                     isClan
@@ -125,8 +145,15 @@ export default async function ClansPage({
                       >
                         <ClanIcon className="size-5" strokeWidth={2.25} />
                       </span>
-                      <h2 className="truncate text-lg font-semibold">
+                      <h2
+                        id={htmlId("clans_clans_page_h2", htmlRowIndex1)}
+                        className="truncate text-lg font-semibold"
+                      >
                         <Link
+                          id={htmlId(
+                            "clans_clans_page_membership_clan_name",
+                            htmlRowIndex1,
+                          )}
                           href={`/c/${membership.clan.slug}/dashboard`}
                           className="hover:text-primary focus-visible:ring-ring rounded-sm focus-visible:ring-2 focus-visible:outline-none"
                         >
@@ -159,20 +186,38 @@ export default async function ClansPage({
                     </div>
                   </dl>
                   <div className="mt-5 flex flex-wrap gap-2">
-                    <Button asChild size="sm" className="w-14">
-                      <Link href={`/c/${membership.clan.slug}/dashboard`}>
+                    <Button
+                      id={htmlId("clans_clans_page_button_2", htmlRowIndex1)}
+                      asChild
+                      size="sm"
+                      className="w-14"
+                    >
+                      <Link
+                        id={htmlId("clans_clans_page_link", htmlRowIndex1)}
+                        href={`/c/${membership.clan.slug}/dashboard`}
+                      >
                         เปิด
                       </Link>
                     </Button>
                     {canManage && (
                       <>
                         <Button
+                          id={htmlId(
+                            "clans_clans_page_button_3",
+                            htmlRowIndex1,
+                          )}
                           asChild
                           size="sm"
                           variant="warning"
                           className="w-14"
                         >
-                          <Link href={`/c/${membership.clan.slug}/settings`}>
+                          <Link
+                            id={htmlId(
+                              "clans_clans_page_link_2",
+                              htmlRowIndex1,
+                            )}
+                            href={`/c/${membership.clan.slug}/settings`}
+                          >
                             แก้ไข
                           </Link>
                         </Button>
@@ -185,13 +230,33 @@ export default async function ClansPage({
             })}
           </div>
         ) : (
-          <section className="border-input mt-8 rounded-xl border border-dashed p-8 text-center">
-            <h2 className="text-lg font-semibold">ยังไม่มี Clan หรือ Gang</h2>
-            <p className="text-muted-foreground mt-2">
+          <section
+            id={htmlId("clans_clans_page_section")}
+            className="border-input mt-8 rounded-xl border border-dashed p-8 text-center"
+          >
+            <h2
+              id={htmlId("clans_clans_page_clan_gang_3")}
+              className="text-lg font-semibold"
+            >
+              ยังไม่มี Clan หรือ Gang
+            </h2>
+            <p
+              id={htmlId("clans_clans_page_p_4")}
+              className="text-muted-foreground mt-2"
+            >
               สร้างพื้นที่แรกเพื่อเริ่มจัดการคลัง
             </p>
-            <Button asChild className="mt-5">
-              <Link href="/clans/new">สร้างพื้นที่แรก</Link>
+            <Button
+              id={htmlId("clans_clans_page_button_4")}
+              asChild
+              className="mt-5"
+            >
+              <Link
+                id={htmlId("clans_clans_page_clans_new_2")}
+                href="/clans/new"
+              >
+                สร้างพื้นที่แรก
+              </Link>
             </Button>
           </section>
         )}

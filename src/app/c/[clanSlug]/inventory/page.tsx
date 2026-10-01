@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getAssetImageUrls } from "@/lib/supabase/asset-images";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -246,17 +247,29 @@ export default async function InventoryPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("inventory_inventory_page_main")}
+        className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-6"
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Link
+              id={htmlId("inventory_inventory_page_dashboard")}
               href={`/c/${clan.slug}/dashboard`}
               className="text-primary text-sm font-medium hover:underline"
             >
               ← กลับ Dashboard
             </Link>
-            <h1 className="mt-4 text-3xl font-bold">Inventory</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1
+              id={htmlId("inventory_inventory_page_inventory")}
+              className="mt-4 text-3xl font-bold"
+            >
+              Inventory
+            </h1>
+            <p
+              id={htmlId("inventory_inventory_page_clan_name")}
+              className="text-muted-foreground mt-2"
+            >
               ยอดคงเหลือของ {clan.name}
               {selectedWarehouse ? ` · ${selectedWarehouse.name}` : ""}
             </p>
@@ -307,7 +320,7 @@ export default async function InventoryPage({
         {(query.updated === "1" || query.transferred === "1") && (
           <ActionNotice
             queryKeys={["updated", "transferred"]}
-            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
           >
             {query.transferred === "1"
               ? "Transfer สินค้าแล้ว"
@@ -315,46 +328,99 @@ export default async function InventoryPage({
           </ActionNotice>
         )}
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-3">
-          <article className="border-input rounded-xl border p-5">
+        <section
+          id={htmlId("inventory_inventory_page_section")}
+          className="mt-8 grid gap-4 sm:grid-cols-3"
+        >
+          <article
+            id={htmlId("inventory_inventory_page_article")}
+            className="border-input rounded-xl border p-5"
+          >
             <div className="flex items-center gap-2">
               <Boxes className="text-primary size-5" aria-hidden="true" />
-              <p className="text-muted-foreground text-sm">Asset ทั้งหมด</p>
+              <p
+                id={htmlId("inventory_inventory_page_asset")}
+                className="text-muted-foreground text-sm"
+              >
+                Asset ทั้งหมด
+              </p>
             </div>
-            <p className="mt-3 text-2xl font-semibold">{allRows.length}</p>
+            <p
+              id={htmlId("inventory_inventory_page_all_rows_length")}
+              className="mt-3 text-2xl font-semibold"
+            >
+              {allRows.length}
+            </p>
           </article>
-          <article className="border-input rounded-xl border p-5">
+          <article
+            id={htmlId("inventory_inventory_page_article_2")}
+            className="border-input rounded-xl border p-5"
+          >
             <div className="flex items-center gap-2">
               <AlertTriangle
                 className="size-5 text-amber-600"
                 aria-hidden="true"
               />
-              <p className="text-muted-foreground text-sm">ใกล้หมด</p>
+              <p
+                id={htmlId("inventory_inventory_page_p")}
+                className="text-muted-foreground text-sm"
+              >
+                ใกล้หมด
+              </p>
             </div>
-            <p className="mt-3 text-2xl font-semibold">{lowCount}</p>
+            <p
+              id={htmlId("inventory_inventory_page_p_2")}
+              className="mt-3 text-2xl font-semibold"
+            >
+              {lowCount}
+            </p>
           </article>
-          <article className="border-input rounded-xl border p-5">
+          <article
+            id={htmlId("inventory_inventory_page_article_3")}
+            className="border-input rounded-xl border p-5"
+          >
             <div className="flex items-center gap-2">
               <PackageX className="size-5 text-red-600" aria-hidden="true" />
-              <p className="text-muted-foreground text-sm">หมด</p>
+              <p
+                id={htmlId("inventory_inventory_page_p_3")}
+                className="text-muted-foreground text-sm"
+              >
+                หมด
+              </p>
             </div>
-            <p className="mt-3 text-2xl font-semibold">{emptyCount}</p>
+            <p
+              id={htmlId("inventory_inventory_page_p_4")}
+              className="mt-3 text-2xl font-semibold"
+            >
+              {emptyCount}
+            </p>
           </article>
         </section>
 
-        <form className="border-input mt-6 grid gap-3 rounded-xl border p-4 sm:grid-cols-[1fr_220px_180px_auto] sm:items-end">
-          <label className="text-sm font-medium">
+        <form
+          id={htmlId("inventory_inventory_page_form")}
+          className="border-input mt-6 grid gap-3 rounded-xl border p-4 sm:grid-cols-[1fr_220px_180px_auto] sm:items-end"
+        >
+          <label
+            id={htmlId("inventory_inventory_page_asset_2")}
+            className="text-sm font-medium"
+          >
             ค้นหา Asset
             <input
+              id={htmlId("inventory_inventory_page_q")}
               name="q"
               defaultValue={query.q ?? ""}
               placeholder="ชื่อหรือ Code"
               className="border-input bg-background mt-1 h-10 w-full rounded-md border px-3"
             />
           </label>
-          <label className="text-sm font-medium">
+          <label
+            id={htmlId("inventory_inventory_page_label")}
+            className="text-sm font-medium"
+          >
             คลัง
             <select
+              id={htmlId("inventory_inventory_page_warehouse")}
               name="warehouse"
               defaultValue={selectedWarehouseId}
               className="border-input bg-background mt-1 h-10 w-full rounded-md border px-3"
@@ -367,9 +433,13 @@ export default async function InventoryPage({
               ))}
             </select>
           </label>
-          <label className="text-sm font-medium">
+          <label
+            id={htmlId("inventory_inventory_page_label_2")}
+            className="text-sm font-medium"
+          >
             สถานะ
             <select
+              id={htmlId("inventory_inventory_page_status")}
               name="status"
               defaultValue={statusFilter}
               className="border-input bg-background mt-1 h-10 w-full rounded-md border px-3"
@@ -380,36 +450,98 @@ export default async function InventoryPage({
               <option value="empty">หมด</option>
             </select>
           </label>
-          <Button type="submit" variant="outline">
+          <Button
+            id={htmlId("inventory_inventory_page_button")}
+            type="submit"
+            variant="outline"
+          >
             กรอง
           </Button>
         </form>
 
-        <section className="border-input mt-6 overflow-hidden rounded-xl border">
+        <section
+          id={htmlId("inventory_inventory_page_section_2")}
+          className="border-input mt-6 overflow-hidden rounded-xl border"
+        >
           {assetError ? (
-            <p className="p-5 text-sm text-red-600">โหลด Inventory ไม่สำเร็จ</p>
+            <p
+              id={htmlId("inventory_inventory_page_inventory_2")}
+              className="p-5 text-sm text-red-600"
+            >
+              โหลด Inventory ไม่สำเร็จ
+            </p>
           ) : rows.length ? (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[840px] text-left text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-5 py-3">Asset</th>
-                    <th className="px-5 py-3">คลัง</th>
-                    <th className="px-5 py-3 text-right">คงเหลือ</th>
-                    <th className="px-5 py-3 text-right">รับเข้าวันนี้</th>
-                    <th className="px-5 py-3">สถานะ</th>
+              <table
+                id={htmlId("inventory_inventory_page_table")}
+                className="w-full min-w-[840px] text-left text-sm"
+              >
+                <thead
+                  id={htmlId("inventory_inventory_page_thead")}
+                  className="bg-muted/50"
+                >
+                  <tr id={htmlId("inventory_inventory_page_tr")}>
+                    <th
+                      id={htmlId("inventory_inventory_page_asset_3")}
+                      className="px-5 py-3"
+                    >
+                      Asset
+                    </th>
+                    <th
+                      id={htmlId("inventory_inventory_page_th")}
+                      className="px-5 py-3"
+                    >
+                      คลัง
+                    </th>
+                    <th
+                      id={htmlId("inventory_inventory_page_th_2")}
+                      className="px-5 py-3 text-right"
+                    >
+                      คงเหลือ
+                    </th>
+                    <th
+                      id={htmlId("inventory_inventory_page_th_3")}
+                      className="px-5 py-3 text-right"
+                    >
+                      รับเข้าวันนี้
+                    </th>
+                    <th
+                      id={htmlId("inventory_inventory_page_th_4")}
+                      className="px-5 py-3"
+                    >
+                      สถานะ
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="divide-input divide-y">
-                  {rows.map((row) => {
+                <tbody
+                  id={htmlId("inventory_inventory_page_tbody")}
+                  className="divide-input divide-y"
+                >
+                  {rows.map((row, htmlRowIndex1) => {
                     const status = statusLabel[row.status];
                     return (
-                      <tr key={row.id}>
-                        <td className="px-5 py-4">
+                      <tr
+                        id={htmlId(
+                          "inventory_inventory_page_tr_2",
+                          htmlRowIndex1,
+                        )}
+                        key={row.id}
+                      >
+                        <td
+                          id={htmlId(
+                            "inventory_inventory_page_td",
+                            htmlRowIndex1,
+                          )}
+                          className="px-5 py-4"
+                        >
                           <div className="flex items-center gap-3">
                             {imageUrls.get(row.id) ? (
                               <div className="border-input relative size-11 shrink-0 overflow-hidden rounded-lg border">
                                 <Image
+                                  id={htmlId(
+                                    "inventory_inventory_page_image",
+                                    htmlRowIndex1,
+                                  )}
                                   src={imageUrls.get(row.id)!}
                                   alt={`รูป ${row.name}`}
                                   fill
@@ -427,21 +559,53 @@ export default async function InventoryPage({
                               </div>
                             )}
                             <div>
-                              <p className="font-medium">{row.name}</p>
-                              <p className="text-muted-foreground text-xs">
+                              <p
+                                id={htmlId(
+                                  "inventory_inventory_page_row_name",
+                                  htmlRowIndex1,
+                                )}
+                                className="font-medium"
+                              >
+                                {row.name}
+                              </p>
+                              <p
+                                id={htmlId(
+                                  "inventory_inventory_page_row_code",
+                                  htmlRowIndex1,
+                                )}
+                                className="text-muted-foreground text-xs"
+                              >
                                 {row.code}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-5 py-4">
+                        <td
+                          id={htmlId(
+                            "inventory_inventory_page_td_2",
+                            htmlRowIndex1,
+                          )}
+                          className="px-5 py-4"
+                        >
                           {selectedWarehouse?.name ?? "—"}
                         </td>
-                        <td className="px-5 py-4 text-right font-medium tabular-nums">
+                        <td
+                          id={htmlId(
+                            "inventory_inventory_page_td_3",
+                            htmlRowIndex1,
+                          )}
+                          className="px-5 py-4 text-right font-medium tabular-nums"
+                        >
                           {formatQuantity(row.balance, row.decimal_places)}{" "}
                           {row.unit}
                         </td>
-                        <td className="px-5 py-4 text-right text-emerald-700 tabular-nums">
+                        <td
+                          id={htmlId(
+                            "inventory_inventory_page_td_4",
+                            htmlRowIndex1,
+                          )}
+                          className="px-5 py-4 text-right text-emerald-700 tabular-nums dark:text-emerald-200"
+                        >
                           +
                           {formatQuantity(
                             row.receivedToday,
@@ -449,14 +613,26 @@ export default async function InventoryPage({
                           )}{" "}
                           {row.unit}
                         </td>
-                        <td className="px-5 py-4">
+                        <td
+                          id={htmlId(
+                            "inventory_inventory_page_td_5",
+                            htmlRowIndex1,
+                          )}
+                          className="px-5 py-4"
+                        >
                           <span
                             className={`rounded-full px-2.5 py-1 text-xs ${status.className}`}
                           >
                             {status.label}
                           </span>
                           {row.threshold > 0 && (
-                            <p className="text-muted-foreground mt-2 text-xs">
+                            <p
+                              id={htmlId(
+                                "inventory_inventory_page_p_5",
+                                htmlRowIndex1,
+                              )}
+                              className="text-muted-foreground mt-2 text-xs"
+                            >
                               แจ้งเตือนต่ำกว่า{" "}
                               {formatQuantity(
                                 row.threshold,
@@ -478,7 +654,12 @@ export default async function InventoryPage({
                 className="mx-auto size-8 text-emerald-600"
                 aria-hidden="true"
               />
-              <p className="mt-3 font-medium">ไม่พบ Asset ตามตัวกรอง</p>
+              <p
+                id={htmlId("inventory_inventory_page_asset_4")}
+                className="mt-3 font-medium"
+              >
+                ไม่พบ Asset ตามตัวกรอง
+              </p>
             </div>
           )}
         </section>

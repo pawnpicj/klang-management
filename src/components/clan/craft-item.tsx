@@ -38,6 +38,8 @@ import {
   assetImageMimeTypes,
   getAssetImageValidationError,
 } from "@/features/inventory/image";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
 
 const field =
   "border-input bg-background focus-visible:ring-ring mt-1 h-10 w-full rounded-md border px-3 outline-none focus-visible:ring-2";
@@ -60,8 +62,11 @@ function ItemImage({
   name: string;
   large?: boolean;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   return url ? (
     <Image
+      id={htmlId("clan_item_image_image", htmlIdPrefix)}
       src={url}
       alt={name}
       width={large ? 120 : 48}
@@ -92,6 +97,8 @@ function CustomImage({
   name: string;
   currentUrl?: string | null;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [preview, setPreview] = useState(currentUrl);
   const [error, setError] = useState<string | null>(null);
   const objectUrl = useRef<string | null>(null);
@@ -103,9 +110,13 @@ function CustomImage({
   );
   return (
     <div className="mt-3 space-y-2">
-      <label className="block text-sm">
+      <label
+        id={htmlId("clan_custom_image_label", htmlIdPrefix)}
+        className="block text-sm"
+      >
         รูปภาพ (ไม่บังคับ)
         <input
+          id={htmlId("clan_custom_image_input", htmlIdPrefix)}
           className={
             field +
             " py-1.5 file:mr-2 file:rounded file:border-0 file:bg-emerald-100 file:px-2 file:py-1"
@@ -128,11 +139,21 @@ function CustomImage({
           }}
         />
       </label>
-      <p className="text-muted-foreground text-xs">
+      <p
+        id={htmlId(
+          "clan_custom_image_jpeg_png_web_p_gif_5_mb_10_mb",
+          htmlIdPrefix,
+        )}
+        className="text-muted-foreground text-xs"
+      >
         JPEG, PNG, WebP หรือ GIF ไม่เกิน 5 MB ต่อรูป รวมทั้งสูตรไม่เกิน 10 MB
       </p>
       {error && (
-        <p className="text-sm text-red-600" role="alert">
+        <p
+          id={htmlId("clan_custom_image_p", htmlIdPrefix)}
+          className="text-sm text-red-600"
+          role="alert"
+        >
           {error}
         </p>
       )}
@@ -154,12 +175,18 @@ function ItemFields({
   imageName: string;
   label: string;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   return (
     <div>
       <div className="grid gap-3 sm:grid-cols-[150px_1fr_130px]">
-        <label className="text-sm">
+        <label
+          id={htmlId("clan_item_fields_label", htmlIdPrefix)}
+          className="text-sm"
+        >
           รูปแบบ
           <select
+            id={htmlId("clan_item_fields_select", htmlIdPrefix)}
             aria-label={`รูปแบบ ${label}`}
             value={item.source}
             className={field}
@@ -176,9 +203,13 @@ function ItemFields({
           </select>
         </label>
         {item.source === "ASSET" ? (
-          <label className="text-sm">
+          <label
+            id={htmlId("clan_item_fields_asset", htmlIdPrefix)}
+            className="text-sm"
+          >
             Asset
             <select
+              id={htmlId("clan_item_fields_select_2", htmlIdPrefix)}
               aria-label={`Asset ${label}`}
               className={field}
               value={item.assetId ?? ""}
@@ -206,9 +237,13 @@ function ItemFields({
           </label>
         ) : (
           <div className="grid grid-cols-[1fr_90px] gap-2">
-            <label className="text-sm">
+            <label
+              id={htmlId("clan_item_fields_label_2", htmlIdPrefix)}
+              className="text-sm"
+            >
               ชื่อ
               <input
+                id={htmlId("clan_item_fields_input", htmlIdPrefix)}
                 aria-label={`ชื่อ ${label}`}
                 value={item.name}
                 required
@@ -219,9 +254,13 @@ function ItemFields({
                 }
               />
             </label>
-            <label className="text-sm">
+            <label
+              id={htmlId("clan_item_fields_label_3", htmlIdPrefix)}
+              className="text-sm"
+            >
               หน่วย
               <input
+                id={htmlId("clan_item_fields_input_2", htmlIdPrefix)}
                 aria-label={`หน่วย ${label}`}
                 value={item.unit}
                 required
@@ -234,9 +273,13 @@ function ItemFields({
             </label>
           </div>
         )}
-        <label className="text-sm">
+        <label
+          id={htmlId("clan_item_fields_label_4", htmlIdPrefix)}
+          className="text-sm"
+        >
           จำนวนต่อรอบ
           <input
+            id={htmlId("clan_item_fields_input_3", htmlIdPrefix)}
             aria-label={`จำนวนต่อรอบ ${label}`}
             type="number"
             min="0.0001"
@@ -259,9 +302,15 @@ function ItemFields({
 }
 
 function SaveButton() {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button
+      id={htmlId("clan_save_button_button", htmlIdPrefix)}
+      type="submit"
+      disabled={pending}
+    >
       {pending ? "กำลังบันทึก…" : "บันทึกสูตร"}
     </Button>
   );
@@ -280,6 +329,8 @@ function RecipeEditor({
   onSaved: (recipe: CraftRecipe) => void;
   onClose: () => void;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const dialog = useRef<HTMLDialogElement>(null);
   const [name, setName] = useState(recipe?.name ?? "");
   const [output, setOutput] = useState<RecipeItem>(
@@ -307,6 +358,7 @@ function RecipeEditor({
   );
   return (
     <dialog
+      id={htmlId("clan_recipe_editor_dialog", htmlIdPrefix)}
       ref={dialog}
       onCancel={(event) => {
         // A file input also emits a bubbling cancel event when its picker closes.
@@ -319,12 +371,20 @@ function RecipeEditor({
       }}
       className="bg-background text-foreground fixed inset-0 m-auto max-h-[90vh] w-[min(94vw,58rem)] overflow-y-auto rounded-xl border p-0 shadow-xl backdrop:bg-black/40"
     >
-      <form action={action} className="space-y-5 p-5 sm:p-6">
+      <form
+        id={htmlId("clan_recipe_editor_form", htmlIdPrefix)}
+        action={action}
+        className="space-y-5 p-5 sm:p-6"
+      >
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">
+          <h2
+            id={htmlId("clan_recipe_editor_h2", htmlIdPrefix)}
+            className="text-xl font-semibold"
+          >
             {recipe ? "แก้ไขสูตรคราฟต์" : "สร้างสูตรคราฟต์"}
           </h2>
           <Button
+            id={htmlId("clan_recipe_editor_button", htmlIdPrefix)}
             type="button"
             size="sm"
             variant="outline"
@@ -335,6 +395,7 @@ function RecipeEditor({
           </Button>
         </div>
         <input
+          id={htmlId("clan_recipe_editor_recipe", htmlIdPrefix)}
           type="hidden"
           name="recipe"
           value={JSON.stringify({
@@ -345,9 +406,13 @@ function RecipeEditor({
             materials,
           })}
         />
-        <label className="block text-sm font-medium">
+        <label
+          id={htmlId("clan_recipe_editor_label", htmlIdPrefix)}
+          className="block text-sm font-medium"
+        >
           ชื่อสูตร
           <input
+            id={htmlId("clan_recipe_editor_input", htmlIdPrefix)}
             aria-label="ชื่อสูตร"
             className={field}
             value={name}
@@ -379,6 +444,11 @@ function RecipeEditor({
                   ส่วนประกอบ {index + 1}
                 </span>
                 <Button
+                  id={htmlId(
+                    "clan_recipe_editor_button_2",
+                    htmlIdPrefix,
+                    index,
+                  )}
                   type="button"
                   variant="outline"
                   size="sm"
@@ -412,6 +482,7 @@ function RecipeEditor({
             </div>
           ))}
           <Button
+            id={htmlId("clan_recipe_editor_button_3", htmlIdPrefix)}
             type="button"
             variant="outline"
             size="sm"
@@ -427,12 +498,21 @@ function RecipeEditor({
           </Button>
         </fieldset>
         {state.status === "error" && (
-          <p role="alert" className="text-sm text-red-600">
+          <p
+            id={htmlId("clan_recipe_editor_state_message", htmlIdPrefix)}
+            role="alert"
+            className="text-sm text-red-600"
+          >
             {state.message}
           </p>
         )}
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button
+            id={htmlId("clan_recipe_editor_button_4", htmlIdPrefix)}
+            type="button"
+            variant="outline"
+            onClick={onClose}
+          >
             ยกเลิก
           </Button>
           <SaveButton />
@@ -459,6 +539,8 @@ export function CraftItem({
   canManage: boolean;
   canViewInventory: boolean;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [recipes, setRecipes] = useState(initialRecipes);
   const [selectedId, setSelectedId] = useState(initialRecipes[0]?.id ?? "");
   const [editing, setEditing] = useState<CraftRecipe | null | undefined>(
@@ -518,9 +600,13 @@ export function CraftItem({
     <>
       <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
         <div ref={searchContainer} className="relative w-full sm:w-96">
-          <label className="block text-sm">
+          <label
+            id={htmlId("clan_craft_item_label", htmlIdPrefix)}
+            className="block text-sm"
+          >
             ค้นหาสูตร
             <input
+              id={htmlId("clan_craft_item_input", htmlIdPrefix)}
               className={field}
               value={search}
               placeholder={recipe?.name ?? "กดเพื่อค้นหาและเลือกสูตร"}
@@ -609,7 +695,10 @@ export function CraftItem({
                 );
               })}
               {!matchingRecipes.length && (
-                <p className="text-muted-foreground p-4 text-sm">
+                <p
+                  id={htmlId("clan_craft_item_p", htmlIdPrefix)}
+                  className="text-muted-foreground p-4 text-sm"
+                >
                   {recipes.length ? "ไม่พบสูตรที่ค้นหา" : "ยังไม่มีสูตรคราฟต์"}
                 </p>
               )}
@@ -618,11 +707,21 @@ export function CraftItem({
         </div>
         {canManage && (
           <div className="flex items-center gap-2">
-            <Button onClick={() => setEditing(null)}>
+            <Button
+              id={htmlId("clan_craft_item_button", htmlIdPrefix)}
+              onClick={() => setEditing(null)}
+            >
               <Plus className="size-4" /> สร้างสูตร
             </Button>
-            <Button asChild variant="outline">
-              <Link href={`/c/${clanSlug}/craft-item/settings`}>
+            <Button
+              id={htmlId("clan_craft_item_button_2", htmlIdPrefix)}
+              asChild
+              variant="outline"
+            >
+              <Link
+                id={htmlId("clan_craft_item_link", htmlIdPrefix)}
+                href={`/c/${clanSlug}/craft-item/settings`}
+              >
                 <Settings2 className="size-4" /> ตั้งค่า
               </Link>
             </Button>
@@ -630,19 +729,32 @@ export function CraftItem({
         )}
       </div>
       {error && (
-        <p className="mt-4 text-sm text-red-600" role="alert">
+        <p
+          id={htmlId("clan_craft_item_p_2", htmlIdPrefix)}
+          className="mt-4 text-sm text-red-600"
+          role="alert"
+        >
           {error}
         </p>
       )}
       <div className="mt-6">
         {recipe ? (
           <div className="grid items-start gap-5 md:grid-cols-[1fr_1.3fr]">
-            <section className="border-input space-y-5 rounded-xl border p-5">
+            <section
+              id={htmlId("clan_craft_item_section", htmlIdPrefix)}
+              className="border-input space-y-5 rounded-xl border p-5"
+            >
               <div className="flex items-start justify-between gap-3">
-                <h2 className="text-xl font-semibold">{recipe.name}</h2>
+                <h2
+                  id={htmlId("clan_craft_item_recipe_name", htmlIdPrefix)}
+                  className="text-xl font-semibold"
+                >
+                  {recipe.name}
+                </h2>
                 {canManage && (
                   <div className="flex shrink-0 gap-1">
                     <Button
+                      id={htmlId("clan_craft_item_button_3", htmlIdPrefix)}
                       type="button"
                       variant="outline"
                       size="sm"
@@ -653,6 +765,7 @@ export function CraftItem({
                       <Pencil className="size-4" />
                     </Button>
                     <Button
+                      id={htmlId("clan_craft_item_button_4", htmlIdPrefix)}
                       type="button"
                       variant="outline"
                       size="sm"
@@ -672,18 +785,34 @@ export function CraftItem({
                 large
               />
               <div>
-                <p className="font-medium">{display(recipe.output).name}</p>
-                <p className="text-muted-foreground mt-1 text-sm">
+                <p
+                  id={htmlId(
+                    "clan_craft_item_display_recipe_output_name",
+                    htmlIdPrefix,
+                  )}
+                  className="font-medium"
+                >
+                  {display(recipe.output).name}
+                </p>
+                <p
+                  id={htmlId("clan_craft_item_p_3", htmlIdPrefix)}
+                  className="text-muted-foreground mt-1 text-sm"
+                >
                   ผลผลิตต่อรอบ {number.format(recipe.output.quantity)}{" "}
                   {display(recipe.output).unit}
                 </p>
               </div>
               <div>
-                <label htmlFor="craft-rounds" className="text-sm font-medium">
+                <label
+                  id={htmlId("clan_craft_item_label_2", htmlIdPrefix)}
+                  htmlFor="craft-rounds"
+                  className="text-sm font-medium"
+                >
                   จำนวนรอบ
                 </label>
                 <div className="mt-2 flex items-center gap-2">
                   <Button
+                    id={htmlId("clan_craft_item_button_5", htmlIdPrefix)}
                     variant="outline"
                     size="sm"
                     disabled={rounds <= 1}
@@ -713,6 +842,7 @@ export function CraftItem({
                     }
                   />
                   <Button
+                    id={htmlId("clan_craft_item_button_6", htmlIdPrefix)}
                     variant="outline"
                     size="sm"
                     disabled={rounds >= 99999}
@@ -723,17 +853,33 @@ export function CraftItem({
                   </Button>
                 </div>
               </div>
-              <div className="rounded-lg bg-emerald-50 p-4">
-                <p className="text-sm text-emerald-800">ผลผลิตรวม</p>
-                <p className="mt-1 text-xl font-semibold text-emerald-900">
+              <div className="rounded-lg bg-emerald-50 p-4 dark:bg-emerald-950">
+                <p
+                  id={htmlId("clan_craft_item_p_4", htmlIdPrefix)}
+                  className="text-sm text-emerald-800 dark:text-emerald-200"
+                >
+                  ผลผลิตรวม
+                </p>
+                <p
+                  id={htmlId("clan_craft_item_p_5", htmlIdPrefix)}
+                  className="mt-1 text-xl font-semibold text-emerald-900 dark:text-emerald-200"
+                >
                   {number.format(recipe.output.quantity * rounds)}{" "}
                   {display(recipe.output).unit}
                 </p>
               </div>
             </section>
-            <section className="border-input overflow-hidden rounded-xl border">
+            <section
+              id={htmlId("clan_craft_item_section_2", htmlIdPrefix)}
+              className="border-input overflow-hidden rounded-xl border"
+            >
               <div className="border-input border-b p-4">
-                <h2 className="font-semibold">วัตถุดิบที่ต้องใช้</h2>
+                <h2
+                  id={htmlId("clan_craft_item_h2", htmlIdPrefix)}
+                  className="font-semibold"
+                >
+                  วัตถุดิบที่ต้องใช้
+                </h2>
               </div>
               <div className="divide-input divide-y">
                 {calculateMaterials(recipe.materials, rounds).map(
@@ -764,18 +910,44 @@ export function CraftItem({
                       >
                         <ItemImage url={detail.imageUrl} name={detail.name} />
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium break-words">
+                          <p
+                            id={htmlId(
+                              "clan_craft_item_detail_name",
+                              htmlIdPrefix,
+                              index,
+                            )}
+                            className="font-medium break-words"
+                          >
                             {detail.name}
                           </p>
-                          <p className="mt-1 text-sm">
+                          <p
+                            id={htmlId(
+                              "clan_craft_item_p_6",
+                              htmlIdPrefix,
+                              index,
+                            )}
+                            className="mt-1 text-sm"
+                          >
                             ต้องใช้ {number.format(item.quantity)} {detail.unit}
                           </p>
                           {linked ? (
                             <>
-                              <p className="text-muted-foreground mt-1 text-xs">
+                              <p
+                                id={htmlId(
+                                  "clan_craft_item_p_7",
+                                  htmlIdPrefix,
+                                  index,
+                                )}
+                                className="text-muted-foreground mt-1 text-xs"
+                              >
                                 มี {number.format(available)} {detail.unit}
                               </p>
                               <p
+                                id={htmlId(
+                                  "clan_craft_item_p_8",
+                                  htmlIdPrefix,
+                                  index,
+                                )}
                                 className={
                                   "mt-1 text-xs font-medium " +
                                   (missing > 0
@@ -789,7 +961,14 @@ export function CraftItem({
                               </p>
                             </>
                           ) : (
-                            <p className="text-muted-foreground mt-1 text-xs">
+                            <p
+                              id={htmlId(
+                                "clan_craft_item_p_9",
+                                htmlIdPrefix,
+                                index,
+                              )}
+                              className="text-muted-foreground mt-1 text-xs"
+                            >
                               {item.source === "CUSTOM"
                                 ? "กำหนดเอง · ไม่ได้เชื่อม Inventory"
                                 : "ยังไม่แสดงยอดจาก Inventory"}
@@ -806,7 +985,7 @@ export function CraftItem({
         ) : (
           <div className="border-input text-muted-foreground rounded-xl border border-dashed p-10 text-center">
             <Hammer className="mx-auto mb-3 size-8" />
-            <p>
+            <p id={htmlId("clan_craft_item_p_10", htmlIdPrefix)}>
               เลือกสูตรเพื่อคำนวณวัตถุดิบ{canManage ? " หรือสร้างสูตรแรก" : ""}
             </p>
           </div>

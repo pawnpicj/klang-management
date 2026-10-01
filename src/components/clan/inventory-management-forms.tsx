@@ -20,6 +20,8 @@ import {
   updateAssetAction,
   updateWarehouseAction,
 } from "@/features/inventory/actions";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
 
 function PendingButton({
   children,
@@ -28,9 +30,16 @@ function PendingButton({
   children: React.ReactNode;
   variant?: "default" | "warning" | "destructive" | "outline";
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant={variant} disabled={pending}>
+    <Button
+      id={htmlId("clan_pending_button_button", htmlIdPrefix)}
+      type="submit"
+      variant={variant}
+      disabled={pending}
+    >
       {pending ? "กำลังบันทึก…" : children}
     </Button>
   );
@@ -39,6 +48,8 @@ const inputClass =
   "border-input bg-background focus-visible:ring-ring mt-1 h-10 w-full rounded-md border px-3 outline-none focus-visible:ring-2";
 
 function AssetImageField({ currentUrl }: { currentUrl?: string | null }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [previewUrl, setPreviewUrl] = useState(currentUrl ?? null);
   const [fileError, setFileError] = useState<string | null>(null);
   const objectUrl = useRef<string | null>(null);
@@ -67,9 +78,13 @@ function AssetImageField({ currentUrl }: { currentUrl?: string | null }) {
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium">
+      <label
+        id={htmlId("clan_asset_image_field_label", htmlIdPrefix)}
+        className="block text-sm font-medium"
+      >
         รูปภาพ
         <input
+          id={htmlId("clan_asset_image_field_image", htmlIdPrefix)}
           name="image"
           type="file"
           accept={assetImageMimeTypes.join(",")}
@@ -78,18 +93,29 @@ function AssetImageField({ currentUrl }: { currentUrl?: string | null }) {
           aria-invalid={Boolean(fileError)}
         />
       </label>
-      <p className="text-muted-foreground text-xs">
+      <p
+        id={htmlId(
+          "clan_asset_image_field_jpeg_png_web_p_gif_mb",
+          htmlIdPrefix,
+        )}
+        className="text-muted-foreground text-xs"
+      >
         เลือกรูป JPEG, PNG, WebP หรือ GIF ขนาดไม่เกิน{" "}
         {assetImageMaxBytes / 1024 / 1024} MB
       </p>
       {fileError && (
-        <p className="text-sm text-red-600" role="alert">
+        <p
+          id={htmlId("clan_asset_image_field_p", htmlIdPrefix)}
+          className="text-sm text-red-600"
+          role="alert"
+        >
           {fileError}
         </p>
       )}
       {previewUrl && (
         <div className="border-input relative size-28 overflow-hidden rounded-lg border">
           <Image
+            id={htmlId("clan_asset_image_field_image_2", htmlIdPrefix)}
             src={previewUrl}
             alt="ตัวอย่างรูป Asset"
             fill
@@ -104,27 +130,56 @@ function AssetImageField({ currentUrl }: { currentUrl?: string | null }) {
 }
 
 export function CreateWarehouseForm({ clanSlug }: { clanSlug: string }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     createWarehouseAction,
     initialClanState,
   );
   return (
     <form
+      id={htmlId("clan_create_warehouse_form_form", htmlIdPrefix)}
       action={action}
       className="grid gap-4 sm:grid-cols-[1fr_1.5fr_auto] sm:items-end"
     >
-      <input type="hidden" name="clanSlug" value={clanSlug} />
-      <label className="text-sm font-medium">
+      <input
+        id={htmlId("clan_create_warehouse_form_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
+      <label
+        id={htmlId("clan_create_warehouse_form_warehouse", htmlIdPrefix)}
+        className="text-sm font-medium"
+      >
         ชื่อ Warehouse
-        <input name="name" required maxLength={100} className={inputClass} />
+        <input
+          id={htmlId("clan_create_warehouse_form_name", htmlIdPrefix)}
+          name="name"
+          required
+          maxLength={100}
+          className={inputClass}
+        />
       </label>
-      <label className="text-sm font-medium">
+      <label
+        id={htmlId("clan_create_warehouse_form_label", htmlIdPrefix)}
+        className="text-sm font-medium"
+      >
         คำอธิบาย
-        <input name="description" maxLength={500} className={inputClass} />
+        <input
+          id={htmlId("clan_create_warehouse_form_description", htmlIdPrefix)}
+          name="description"
+          maxLength={500}
+          className={inputClass}
+        />
       </label>
       <PendingButton>สร้าง Warehouse</PendingButton>
       {state.message && (
-        <p className="text-sm text-red-600 sm:col-span-3" role="alert">
+        <p
+          id={htmlId("clan_create_warehouse_form_state_message", htmlIdPrefix)}
+          className="text-sm text-red-600 sm:col-span-3"
+          role="alert"
+        >
           {state.message}
         </p>
       )}
@@ -147,6 +202,8 @@ export function WarehouseActions({
     is_active: boolean;
   };
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(
     updateWarehouseAction,
     initialClanState,
@@ -155,14 +212,29 @@ export function WarehouseActions({
   return (
     <div className="mt-4 space-y-3">
       <form
+        id={htmlId("clan_warehouse_actions_form", htmlIdPrefix)}
         action={action}
         className="grid gap-3 sm:grid-cols-[1fr_1.5fr_auto] sm:items-end"
       >
-        <input type="hidden" name="clanSlug" value={clanSlug} />
-        <input type="hidden" name="warehouseId" value={warehouse.id} />
-        <label className="text-sm font-medium">
+        <input
+          id={htmlId("clan_warehouse_actions_clan_slug", htmlIdPrefix)}
+          type="hidden"
+          name="clanSlug"
+          value={clanSlug}
+        />
+        <input
+          id={htmlId("clan_warehouse_actions_warehouse_id", htmlIdPrefix)}
+          type="hidden"
+          name="warehouseId"
+          value={warehouse.id}
+        />
+        <label
+          id={htmlId("clan_warehouse_actions_label", htmlIdPrefix)}
+          className="text-sm font-medium"
+        >
           ชื่อ
           <input
+            id={htmlId("clan_warehouse_actions_name", htmlIdPrefix)}
             name="name"
             defaultValue={warehouse.name}
             required
@@ -170,9 +242,13 @@ export function WarehouseActions({
             className={inputClass}
           />
         </label>
-        <label className="text-sm font-medium">
+        <label
+          id={htmlId("clan_warehouse_actions_label_2", htmlIdPrefix)}
+          className="text-sm font-medium"
+        >
           คำอธิบาย
           <input
+            id={htmlId("clan_warehouse_actions_description", htmlIdPrefix)}
             name="description"
             defaultValue={warehouse.description ?? ""}
             maxLength={500}
@@ -183,16 +259,33 @@ export function WarehouseActions({
           <Save className="size-4" aria-hidden="true" /> บันทึก
         </PendingButton>
         {state.message && (
-          <p className="text-sm text-red-600 sm:col-span-3" role="alert">
+          <p
+            id={htmlId("clan_warehouse_actions_state_message", htmlIdPrefix)}
+            className="text-sm text-red-600 sm:col-span-3"
+            role="alert"
+          >
             {state.message}
           </p>
         )}
       </form>
       <div className="flex flex-wrap gap-2">
         {!warehouse.is_default && (
-          <form action={setDefaultWarehouseAction}>
-            <input type="hidden" name="clanSlug" value={clanSlug} />
-            <input type="hidden" name="warehouseId" value={warehouse.id} />
+          <form
+            id={htmlId("clan_warehouse_actions_form_2", htmlIdPrefix)}
+            action={setDefaultWarehouseAction}
+          >
+            <input
+              id={htmlId("clan_warehouse_actions_clan_slug_2", htmlIdPrefix)}
+              type="hidden"
+              name="clanSlug"
+              value={clanSlug}
+            />
+            <input
+              id={htmlId("clan_warehouse_actions_warehouse_id_2", htmlIdPrefix)}
+              type="hidden"
+              name="warehouseId"
+              value={warehouse.id}
+            />
             <PendingButton variant="warning">
               <Star className="size-4" aria-hidden="true" /> ตั้งเป็น Default
             </PendingButton>
@@ -200,14 +293,25 @@ export function WarehouseActions({
         )}
         {!warehouse.is_default && (
           <form
+            id={htmlId("clan_warehouse_actions_form_3", htmlIdPrefix)}
             action={deactivateWarehouseAction}
             onSubmit={(event) => {
               if (!window.confirm(`ยืนยันปิดใช้งาน ${warehouse.name}?`))
                 event.preventDefault();
             }}
           >
-            <input type="hidden" name="clanSlug" value={clanSlug} />
-            <input type="hidden" name="warehouseId" value={warehouse.id} />
+            <input
+              id={htmlId("clan_warehouse_actions_clan_slug_3", htmlIdPrefix)}
+              type="hidden"
+              name="clanSlug"
+              value={clanSlug}
+            />
+            <input
+              id={htmlId("clan_warehouse_actions_warehouse_id_3", htmlIdPrefix)}
+              type="hidden"
+              name="warehouseId"
+              value={warehouse.id}
+            />
             <PendingButton variant="destructive">
               <Archive className="size-4" aria-hidden="true" /> ปิดใช้งาน
             </PendingButton>
@@ -219,28 +323,68 @@ export function WarehouseActions({
 }
 
 export function CreateAssetForm({ clanSlug }: { clanSlug: string }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(createAssetAction, initialClanState);
   return (
-    <form action={action} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <input type="hidden" name="clanSlug" value={clanSlug} />
-      <label className="text-sm font-medium">
+    <form
+      id={htmlId("clan_create_asset_form_form", htmlIdPrefix)}
+      action={action}
+      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+    >
+      <input
+        id={htmlId("clan_create_asset_form_clan_slug", htmlIdPrefix)}
+        type="hidden"
+        name="clanSlug"
+        value={clanSlug}
+      />
+      <label
+        id={htmlId("clan_create_asset_form_code", htmlIdPrefix)}
+        className="text-sm font-medium"
+      >
         Code
-        <input name="code" required maxLength={50} className={inputClass} />
+        <input
+          id={htmlId("clan_create_asset_form_code_2", htmlIdPrefix)}
+          name="code"
+          required
+          maxLength={50}
+          className={inputClass}
+        />
       </label>
-      <label className="text-sm font-medium">
+      <label
+        id={htmlId("clan_create_asset_form_asset", htmlIdPrefix)}
+        className="text-sm font-medium"
+      >
         ชื่อ Asset
-        <input name="name" required maxLength={100} className={inputClass} />
+        <input
+          id={htmlId("clan_create_asset_form_name", htmlIdPrefix)}
+          name="name"
+          required
+          maxLength={100}
+          className={inputClass}
+        />
       </label>
-      <label className="text-sm font-medium">
+      <label
+        id={htmlId("clan_create_asset_form_label", htmlIdPrefix)}
+        className="text-sm font-medium"
+      >
         ประเภท
-        <select name="assetType" className={inputClass}>
+        <select
+          id={htmlId("clan_create_asset_form_asset_type", htmlIdPrefix)}
+          name="assetType"
+          className={inputClass}
+        >
           <option value="ITEM">Item</option>
           <option value="CURRENCY">Currency</option>
         </select>
       </label>
-      <label className="text-sm font-medium">
+      <label
+        id={htmlId("clan_create_asset_form_label_2", htmlIdPrefix)}
+        className="text-sm font-medium"
+      >
         หน่วย
         <input
+          id={htmlId("clan_create_asset_form_unit", htmlIdPrefix)}
           name="unit"
           required
           maxLength={30}
@@ -248,9 +392,13 @@ export function CreateAssetForm({ clanSlug }: { clanSlug: string }) {
           className={inputClass}
         />
       </label>
-      <label className="text-sm font-medium">
+      <label
+        id={htmlId("clan_create_asset_form_label_3", htmlIdPrefix)}
+        className="text-sm font-medium"
+      >
         จำนวนที่ต้องส่ง
         <input
+          id={htmlId("clan_create_asset_form_required_quantity", htmlIdPrefix)}
           name="requiredQuantity"
           type="number"
           min="0"
@@ -260,9 +408,16 @@ export function CreateAssetForm({ clanSlug }: { clanSlug: string }) {
           className={inputClass}
         />
       </label>
-      <label className="text-sm font-medium">
+      <label
+        id={htmlId("clan_create_asset_form_label_4", htmlIdPrefix)}
+        className="text-sm font-medium"
+      >
         แจ้งเตือนเมื่อเหลือต่ำกว่า
         <input
+          id={htmlId(
+            "clan_create_asset_form_low_stock_threshold",
+            htmlIdPrefix,
+          )}
           name="lowStockThreshold"
           type="number"
           min="0"
@@ -280,6 +435,7 @@ export function CreateAssetForm({ clanSlug }: { clanSlug: string }) {
       </div>
       {state.message && (
         <p
+          id={htmlId("clan_create_asset_form_state_message", htmlIdPrefix)}
           className="text-sm text-red-600 sm:col-span-2 lg:col-span-4"
           role="alert"
         >
@@ -307,19 +463,36 @@ export function AssetActions({
     is_active: boolean;
   };
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [state, action] = useActionState(updateAssetAction, initialClanState);
   if (!canManage || !asset.is_active) return null;
   return (
     <div className="border-input mt-5 border-t pt-5">
       <form
+        id={htmlId("clan_asset_actions_form", htmlIdPrefix)}
         action={action}
         className="grid items-start gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]"
       >
-        <input type="hidden" name="clanSlug" value={clanSlug} />
-        <input type="hidden" name="assetId" value={asset.id} />
-        <label className="text-sm font-medium">
+        <input
+          id={htmlId("clan_asset_actions_clan_slug", htmlIdPrefix)}
+          type="hidden"
+          name="clanSlug"
+          value={clanSlug}
+        />
+        <input
+          id={htmlId("clan_asset_actions_asset_id", htmlIdPrefix)}
+          type="hidden"
+          name="assetId"
+          value={asset.id}
+        />
+        <label
+          id={htmlId("clan_asset_actions_label", htmlIdPrefix)}
+          className="text-sm font-medium"
+        >
           ชื่อ
           <input
+            id={htmlId("clan_asset_actions_name", htmlIdPrefix)}
             name="name"
             defaultValue={asset.name}
             required
@@ -327,9 +500,13 @@ export function AssetActions({
             className={inputClass}
           />
         </label>
-        <label className="text-sm font-medium">
+        <label
+          id={htmlId("clan_asset_actions_label_2", htmlIdPrefix)}
+          className="text-sm font-medium"
+        >
           จำนวนที่ต้องส่ง
           <input
+            id={htmlId("clan_asset_actions_required_quantity", htmlIdPrefix)}
             name="requiredQuantity"
             type="number"
             min="0"
@@ -339,9 +516,13 @@ export function AssetActions({
             className={inputClass}
           />
         </label>
-        <label className="text-sm font-medium">
+        <label
+          id={htmlId("clan_asset_actions_label_3", htmlIdPrefix)}
+          className="text-sm font-medium"
+        >
           แจ้งเตือนเมื่อเหลือต่ำกว่า
           <input
+            id={htmlId("clan_asset_actions_low_stock_threshold", htmlIdPrefix)}
             name="lowStockThreshold"
             type="number"
             min="0"
@@ -353,12 +534,17 @@ export function AssetActions({
         </label>
         <AssetImageField currentUrl={imagePreviewUrl} />
         {state.message && (
-          <p className="text-sm text-red-600 sm:col-span-2" role="alert">
+          <p
+            id={htmlId("clan_asset_actions_state_message", htmlIdPrefix)}
+            className="text-sm text-red-600 sm:col-span-2"
+            role="alert"
+          >
             {state.message}
           </p>
         )}
         <div className="flex flex-wrap items-center justify-end gap-2 sm:col-span-2">
           <Button
+            id={htmlId("clan_asset_actions_button", htmlIdPrefix)}
             type="submit"
             variant="destructive"
             formAction={deactivateAssetAction}

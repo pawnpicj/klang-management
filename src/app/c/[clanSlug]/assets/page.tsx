@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getAssetImageUrls } from "@/lib/supabase/asset-images";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -61,35 +62,57 @@ export default async function AssetsPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("assets_assets_page_main")}
+        className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6"
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <Link
+              id={htmlId("assets_assets_page_dashboard")}
               href={`/c/${clan.slug}/dashboard`}
               className="text-primary text-sm font-medium hover:underline"
             >
               ← กลับ Dashboard
             </Link>
-            <h1 className="mt-4 text-3xl font-bold">Assets</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1
+              id={htmlId("assets_assets_page_assets")}
+              className="mt-4 text-3xl font-bold"
+            >
+              Assets
+            </h1>
+            <p
+              id={htmlId("assets_assets_page_clan_name")}
+              className="text-muted-foreground mt-2"
+            >
               เงินและไอเทมของ {clan.name}
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link href={`/c/${clan.slug}/warehouses`}>Warehouses</Link>
+          <Button
+            id={htmlId("assets_assets_page_button")}
+            asChild
+            variant="outline"
+          >
+            <Link
+              id={htmlId("assets_assets_page_warehouses")}
+              href={`/c/${clan.slug}/warehouses`}
+            >
+              Warehouses
+            </Link>
           </Button>
         </div>
         {notice && (
           <ActionNotice
             queryKeys={["created", "updated", "deactivated"]}
-            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
           >
             {notice}
           </ActionNotice>
         )}
         {query.error && (
           <p
-            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-800"
+            id={htmlId("assets_assets_page_p")}
+            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
             role="alert"
           >
             {query.error === "asset-balance"
@@ -98,25 +121,47 @@ export default async function AssetsPage({
           </p>
         )}
         {canManage && (
-          <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
-            <h2 className="text-lg font-semibold">สร้าง Asset</h2>
+          <section
+            id={htmlId("assets_assets_page_section")}
+            className="border-input mt-8 rounded-xl border p-5 sm:p-6"
+          >
+            <h2
+              id={htmlId("assets_assets_page_asset")}
+              className="text-lg font-semibold"
+            >
+              สร้าง Asset
+            </h2>
             <div className="mt-5">
               <CreateAssetForm clanSlug={clan.slug} />
             </div>
           </section>
         )}
-        <section className="mt-8 space-y-4">
+        <section
+          id={htmlId("assets_assets_page_section_2")}
+          className="mt-8 space-y-4"
+        >
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Asset ทั้งหมด</h2>
+            <h2
+              id={htmlId("assets_assets_page_asset_2")}
+              className="text-xl font-semibold"
+            >
+              Asset ทั้งหมด
+            </h2>
             <span className="text-muted-foreground text-sm">
               {assets?.length ?? 0} รายการ
             </span>
           </div>
           {error ? (
-            <p className="text-sm text-red-600">โหลด Assets ไม่สำเร็จ</p>
+            <p
+              id={htmlId("assets_assets_page_assets_2")}
+              className="text-sm text-red-600"
+            >
+              โหลด Assets ไม่สำเร็จ
+            </p>
           ) : assets?.length ? (
-            assets.map((asset) => (
+            assets.map((asset, htmlRowIndex1) => (
               <article
+                id={htmlId("assets_assets_page_article", htmlRowIndex1)}
                 key={asset.id}
                 className="border-input bg-background rounded-xl border p-5 shadow-sm sm:p-6"
               >
@@ -125,6 +170,7 @@ export default async function AssetsPage({
                     {imageUrls.get(asset.id) && (
                       <div className="border-input relative size-14 shrink-0 overflow-hidden rounded-lg border">
                         <Image
+                          id={htmlId("assets_assets_page_image", htmlRowIndex1)}
                           src={imageUrls.get(asset.id)!}
                           alt={`รูป ${asset.name}`}
                           fill
@@ -135,7 +181,15 @@ export default async function AssetsPage({
                       </div>
                     )}
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-lg font-semibold">{asset.name}</h3>
+                      <h3
+                        id={htmlId(
+                          "assets_assets_page_asset_name",
+                          htmlRowIndex1,
+                        )}
+                        className="text-lg font-semibold"
+                      >
+                        {asset.name}
+                      </h3>
                       <span className="bg-muted rounded-full px-2.5 py-1 text-xs">
                         {asset.code}
                       </span>
@@ -156,7 +210,10 @@ export default async function AssetsPage({
               </article>
             ))
           ) : (
-            <p className="text-muted-foreground rounded-xl border p-5 text-sm">
+            <p
+              id={htmlId("assets_assets_page_asset_3")}
+              className="text-muted-foreground rounded-xl border p-5 text-sm"
+            >
               ยังไม่มี Asset
             </p>
           )}

@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
 import { TransactionForm } from "@/components/clan/transaction-forms";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export async function TransactionCreatePage({
   clanSlug,
@@ -70,18 +71,33 @@ export async function TransactionCreatePage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("clan_transaction_create_page_main")}
+        className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6"
+      >
         <Link
+          id={htmlId("clan_transaction_create_page_transactions")}
           href={`/c/${clan.slug}/transactions`}
           className="text-primary text-sm font-medium hover:underline"
         >
           ← กลับ Transactions
         </Link>
-        <h1 className="mt-4 text-3xl font-bold">สร้าง {title}</h1>
-        <p className="text-muted-foreground mt-2">
+        <h1
+          id={htmlId("clan_transaction_create_page_h1")}
+          className="mt-4 text-3xl font-bold"
+        >
+          สร้าง {title}
+        </h1>
+        <p
+          id={htmlId("clan_transaction_create_page_post_atomic")}
+          className="text-muted-foreground mt-2"
+        >
           รายการจะถูกตรวจยอดและ Post แบบ atomic
         </p>
-        <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
+        <section
+          id={htmlId("clan_transaction_create_page_section")}
+          className="border-input mt-8 rounded-xl border p-5 sm:p-6"
+        >
           {assets?.length ? (
             <TransactionForm
               clanSlug={clan.slug}
@@ -92,7 +108,12 @@ export async function TransactionCreatePage({
               members={members ?? []}
             />
           ) : (
-            <p className="text-sm">ต้องสร้าง Active Asset ก่อนทำรายการ</p>
+            <p
+              id={htmlId("clan_transaction_create_page_active_asset")}
+              className="text-sm"
+            >
+              ต้องสร้าง Active Asset ก่อนทำรายการ
+            </p>
           )}
         </section>
       </main>

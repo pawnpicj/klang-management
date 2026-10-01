@@ -2547,3 +2547,121 @@ describe("Facebook and TikTok Clan links", () => {
     });
   });
 });
+
+describe("Member social media and equipment", () => {
+  async function memberRow(user = member, clan = clanA) {
+    return (
+      await admin.query(
+        "select id,role_id from public.clan_members where clan_id=$1 and user_id=$2",
+        [clan, user],
+      )
+    ).rows[0];
+  }
+  async function save(
+    user: string,
+    row: { id: string; role_id: string },
+    social: unknown = {},
+    equipment: unknown = [],
+  ) {
+    return sql(
+      user,
+      "select public.update_clan_member_profile($1,$2,'Member Profile',$3,(now() at time zone 'Asia/Bangkok')::date,$4::jsonb,$5::jsonb)",
+      [
+        clanA,
+        row.id,
+        row.role_id,
+        JSON.stringify(social),
+        JSON.stringify(equipment),
+      ],
+    );
+  }
+  it("saves and clears personal records without changing Inventory", async () => {
+    await deposit("100");
+    const row = await memberRow();
+    const social = {
+      discordUrl: "https://discord.gg/member",
+      lineUrl: "https://line.me/ti/p/member",
+      telegramUrl: "https://t.me/member",
+      facebookUrl: "https://www.facebook.com/member",
+      tiktokUrl: "https://www.tiktok.com/@member",
+      youtubeUrl: "https://www.youtube.com/@member",
+      kickUrl: "https://kick.com/member",
+      instagramUrl: "https://www.instagram.com/member/",
+    };
+    const equipment = [
+      { category: "WEAPON", name: "Custom Gun", quantity: 2 },
+      { category: "MEDICINE", name: "Gold", quantity: 4 },
+      { category: "GRENADE", name: "Grenade", quantity: 1 },
+      { category: "OTHER", name: "Radio", quantity: 2 },
+    ];
+    await save(alice, row, social, equipment);
+    expect(
+      (
+        await sql(
+          member,
+          "select social_links,equipment from public.clan_members where id=$1",
+          [row.id],
+        )
+      ).rows[0],
+    ).toEqual({ social_links: social, equipment });
+    expect(Number(await balance(mainA))).toBe(100);
+    await save(alice, row);
+    expect(
+      (
+        await admin.query(
+          "select social_links,equipment from public.clan_members where id=$1",
+          [row.id],
+        )
+      ).rows[0],
+    ).toEqual({ social_links: {}, equipment: [] });
+    expect(Number(await balance(mainA))).toBe(100);
+  });
+  it("requires member.manage and prevents cross-clan edits", async () => {
+    const row = await memberRow();
+    await expect(save(member, row)).rejects.toMatchObject({ code: "42501" });
+    await expect(save(bob, row)).rejects.toMatchObject({ code: "42501" });
+    const foreign = await memberRow(bob, clanB);
+    await expect(save(alice, foreign)).rejects.toMatchObject({ code: "P0002" });
+  });
+  it("rejects malformed records atomically", async () => {
+    const row = await memberRow();
+    const initial = (
+      await admin.query(
+        "select character_name from public.clan_members where id=$1",
+        [row.id],
+      )
+    ).rows[0].character_name;
+    for (const social of [
+      { discordUrl: "javascript:alert(1)" },
+      { unknown: "https://discord.gg/x" },
+      { lineUrl: "https://evil.test/x" },
+      { youtubeUrl: "https://youtube.com.evil.test/x" },
+      { kickUrl: "javascript:alert(1)" },
+      { instagramUrl: "https://instagram.com.evil.test/x" },
+    ]) {
+      await expect(save(alice, row, social)).rejects.toMatchObject({
+        code: "22023",
+      });
+    }
+    for (const patch of [
+      { quantity: 0 },
+      { quantity: 1.5 },
+      { name: "" },
+      { category: "INVALID" },
+    ]) {
+      await expect(
+        save(alice, row, {}, [
+          { category: "WEAPON", name: "Gun", quantity: 1, ...patch },
+        ]),
+      ).rejects.toMatchObject({ code: "22023" });
+    }
+    expect(
+      (
+        await admin.query(
+          "select character_name,equipment from public.clan_members where id=$1",
+          [row.id],
+        )
+      ).rows[0],
+    ).toEqual({ character_name: initial, equipment: [] });
+  });
+});

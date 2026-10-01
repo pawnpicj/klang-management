@@ -254,9 +254,11 @@ export type Database = {
           clan_id: string
           created_at: string
           delivery_started_on: string
+          equipment: NonNullable<Json>
           id: string
           joined_at: string | null
           role_id: string
+          social_links: NonNullable<Json>
           status: string
           updated_at: string
           user_id: string | null
@@ -266,9 +268,11 @@ export type Database = {
           clan_id: string
           created_at?: string
           delivery_started_on?: string
+          equipment?: NonNullable<Json>
           id?: string
           joined_at?: string | null
           role_id: string
+          social_links?: NonNullable<Json>
           status?: string
           updated_at?: string
           user_id?: string | null
@@ -278,9 +282,11 @@ export type Database = {
           clan_id?: string
           created_at?: string
           delivery_started_on?: string
+          equipment?: NonNullable<Json>
           id?: string
           joined_at?: string | null
           role_id?: string
+          social_links?: NonNullable<Json>
           status?: string
           updated_at?: string
           user_id?: string | null
@@ -1522,6 +1528,18 @@ export type Database = {
           p_character_name: string
           p_clan_id: string
           p_member_id: string
+        }
+        Returns: string
+      }
+      update_clan_member_profile: {
+        Args: {
+          p_character_name: string
+          p_clan_id: string
+          p_delivery_started_on: string
+          p_equipment: Json
+          p_member_id: string
+          p_role_id: string
+          p_social_links: Json
         }
         Returns: string
       }

@@ -1,6 +1,9 @@
 export default function PageLoading() {
+  const htmlIdPrefix = useHtmlId();
+
   return (
     <main
+      id={htmlId("ui_page_loading_main", htmlIdPrefix)}
       className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-6"
       role="status"
       aria-label="กำลังโหลดข้อมูล"
@@ -19,3 +22,5 @@ export default function PageLoading() {
     </main>
   );
 }
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";

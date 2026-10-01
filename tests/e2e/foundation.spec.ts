@@ -84,3 +84,59 @@ test("not found has recovery link", async ({ page }) => {
     page.getByRole("heading", { name: "KLANG Management" }),
   ).toBeVisible();
 });
+
+test("Light and Dark themes persist across pages and reloads", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator("#theme_dark_button").click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("#theme_dark_button")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  expect(
+    await page
+      .locator("body")
+      .evaluate((body) => getComputedStyle(body).backgroundColor),
+  ).toBe("rgb(11, 18, 32)");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.goto("/login");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.locator("#theme_light_button").click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  expect(
+    await page
+      .locator("body")
+      .evaluate((body) => getComputedStyle(body).backgroundColor),
+  ).toBe("rgb(248, 250, 252)");
+});
+
+test("public pages expose semantic unique IDs for headings and form controls", async ({
+  page,
+}) => {
+  for (const route of [
+    "/",
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/does-not-exist",
+  ]) {
+    await page.goto(route);
+    expect(
+      await page
+        .locator(
+          'h1:not([id]),input:not([id]):not([name^="$ACTION"]),select:not([id]),textarea:not([id]),form:not([id]),p:not([id])',
+        )
+        .count(),
+    ).toBe(0);
+    const duplicates = await page.locator("[id]").evaluateAll((elements) => {
+      const ids = elements.map((element) => element.id);
+      return ids.filter((id, index) => ids.indexOf(id) !== index);
+    });
+    expect(duplicates).toEqual([]);
+  }
+});

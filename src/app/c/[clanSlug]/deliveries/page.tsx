@@ -6,6 +6,7 @@ import { DeliveryTable } from "@/components/clan/delivery-table";
 import { Button } from "@/components/ui/button";
 import { summarizeMemberDeliveries } from "@/features/deliveries/summary";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -109,28 +110,49 @@ export default async function DeliveriesPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("deliveries_deliveries_page_main")}
+        className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6"
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <Link
+              id={htmlId("deliveries_deliveries_page_dashboard")}
               href={`/c/${clan.slug}/dashboard`}
               className="text-primary text-sm font-medium hover:underline"
             >
               ← กลับ Dashboard
             </Link>
-            <h1 className="mt-4 text-3xl font-bold">Delivery</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1
+              id={htmlId("deliveries_deliveries_page_delivery")}
+              className="mt-4 text-3xl font-bold"
+            >
+              Delivery
+            </h1>
+            <p
+              id={htmlId("deliveries_deliveries_page_clan_name")}
+              className="text-muted-foreground mt-2"
+            >
               บันทึกและตรวจสอบการส่งของรายวันของ {clan.name}
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link href={`/c/${clan.slug}/assets`}>ตั้งค่า Assets</Link>
+          <Button
+            id={htmlId("deliveries_deliveries_page_button")}
+            asChild
+            variant="outline"
+          >
+            <Link
+              id={htmlId("deliveries_deliveries_page_assets")}
+              href={`/c/${clan.slug}/assets`}
+            >
+              ตั้งค่า Assets
+            </Link>
           </Button>
         </div>
         {query.recorded === "1" && (
           <ActionNotice
             queryKeys={["recorded", "updated", "deleted"]}
-            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
           >
             บันทึกการส่งของแล้ว
           </ActionNotice>
@@ -138,7 +160,7 @@ export default async function DeliveriesPage({
         {query.updated === "1" && (
           <ActionNotice
             queryKeys={["recorded", "updated", "deleted"]}
-            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
           >
             แก้ไขรายการส่งของแล้ว
           </ActionNotice>
@@ -146,33 +168,48 @@ export default async function DeliveriesPage({
         {query.deleted === "1" && (
           <ActionNotice
             queryKeys={["recorded", "updated", "deleted"]}
-            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+            className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
           >
             ลบรายการส่งของแล้ว
           </ActionNotice>
         )}
         {query.deleteError === "1" && (
           <p
-            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-700"
+            id={htmlId("deliveries_deliveries_page_p")}
+            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200"
             role="alert"
           >
             ลบรายการส่งของไม่สำเร็จ
           </p>
         )}
         {!assets?.length && (
-          <p className="mt-6 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+          <p
+            id={htmlId("deliveries_deliveries_page_asset_assets")}
+            className="mt-6 rounded-md bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200"
+          >
             ยังไม่มี Asset กรุณาตั้งค่าในหน้า Assets
           </p>
         )}
-        <section className="border-input mt-8 overflow-hidden rounded-xl border">
+        <section
+          id={htmlId("deliveries_deliveries_page_section")}
+          className="border-input mt-8 overflow-hidden rounded-xl border"
+        >
           <div className="border-input flex items-center justify-between border-b px-5 py-4">
-            <h2 className="text-xl font-semibold">รายชื่อสมาชิก</h2>
+            <h2
+              id={htmlId("deliveries_deliveries_page_h2")}
+              className="text-xl font-semibold"
+            >
+              รายชื่อสมาชิก
+            </h2>
             <span className="text-muted-foreground text-sm">
               {members?.length ?? 0} คน
             </span>
           </div>
           {loadError ? (
-            <p className="p-5 text-sm text-red-600">
+            <p
+              id={htmlId("deliveries_deliveries_page_delivery_2")}
+              className="p-5 text-sm text-red-600"
+            >
               โหลดข้อมูล Delivery ไม่สำเร็จ
             </p>
           ) : rows.length ? (
@@ -200,7 +237,12 @@ export default async function DeliveriesPage({
               canManage={Boolean(canManage)}
             />
           ) : (
-            <p className="text-muted-foreground p-5 text-sm">ยังไม่มีสมาชิก</p>
+            <p
+              id={htmlId("deliveries_deliveries_page_p_2")}
+              className="text-muted-foreground p-5 text-sm"
+            >
+              ยังไม่มีสมาชิก
+            </p>
           )}
         </section>
       </main>

@@ -7,6 +7,7 @@ import {
   ClanSettingsForm,
 } from "@/components/clan/clan-management-forms";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -52,14 +53,21 @@ export default async function ClanSettingsPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("settings_clan_settings_page_main")}
+        className="mx-auto w-full max-w-xl px-5 py-10 sm:px-6"
+      >
         <Link
+          id={htmlId("settings_clan_settings_page_dashboard")}
           href={`/c/${clan.slug}/dashboard`}
           className="text-primary text-sm font-medium underline-offset-4 hover:underline"
         >
           ← กลับ Dashboard
         </Link>
-        <h1 className="mt-5 text-3xl font-bold tracking-tight">
+        <h1
+          id={htmlId("settings_clan_settings_page_clan_gang")}
+          className="mt-5 text-3xl font-bold tracking-tight"
+        >
           แก้ไข Clan/Gang
         </h1>
         {query.updated === "1" && (
@@ -70,7 +78,10 @@ export default async function ClanSettingsPage({
             บันทึกข้อมูลแล้ว
           </ActionNotice>
         )}
-        <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
+        <section
+          id={htmlId("settings_clan_settings_page_section")}
+          className="border-input mt-8 rounded-xl border p-5 sm:p-6"
+        >
           <ClanSettingsForm
             clanSlug={clan.slug}
             name={clan.name}
@@ -86,9 +97,20 @@ export default async function ClanSettingsPage({
             }}
           />
         </section>
-        <section className="border-input mt-6 rounded-xl border p-5 sm:p-6">
-          <h2 className="font-semibold">ลบ Clan/Gang</h2>
-          <p className="text-muted-foreground mt-2 text-sm leading-6">
+        <section
+          id={htmlId("settings_clan_settings_page_section_2")}
+          className="border-input mt-6 rounded-xl border p-5 sm:p-6"
+        >
+          <h2
+            id={htmlId("settings_clan_settings_page_clan_gang_2")}
+            className="font-semibold"
+          >
+            ลบ Clan/Gang
+          </h2>
+          <p
+            id={htmlId("settings_clan_settings_page_archive_audit_log")}
+            className="text-muted-foreground mt-2 text-sm leading-6"
+          >
             ระบบจะ Archive พื้นที่นี้เพื่อรักษาประวัติธุรกรรมและ Audit Log
           </p>
           <div className="mt-4">

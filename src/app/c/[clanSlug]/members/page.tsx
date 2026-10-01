@@ -9,6 +9,7 @@ import {
 } from "@/components/clan/clan-management-forms";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -63,20 +64,40 @@ export default async function ClanMembersPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("members_clan_members_page_main")}
+        className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6"
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Link
+              id={htmlId("members_clan_members_page_dashboard")}
               href={`/c/${clan.slug}/dashboard`}
               className="text-primary text-sm font-medium underline-offset-4 hover:underline"
             >
               ← กลับ Dashboard
             </Link>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight">สมาชิก</h1>
-            <p className="text-muted-foreground mt-2">{clan.name}</p>
+            <h1
+              id={htmlId("members_clan_members_page_h1")}
+              className="mt-4 text-3xl font-bold tracking-tight"
+            >
+              สมาชิก
+            </h1>
+            <p
+              id={htmlId("members_clan_members_page_clan_name")}
+              className="text-muted-foreground mt-2"
+            >
+              {clan.name}
+            </p>
           </div>
-          <Button asChild variant="outline">
-            <Link href="/clans">เปลี่ยน Clan/Gang</Link>
+          <Button
+            id={htmlId("members_clan_members_page_button")}
+            asChild
+            variant="outline"
+          >
+            <Link id={htmlId("members_clan_members_page_clans")} href="/clans">
+              เปลี่ยน Clan/Gang
+            </Link>
           </Button>
         </div>
 
@@ -114,6 +135,7 @@ export default async function ClanMembersPage({
         )}
         {query.error && (
           <p
+            id={htmlId("members_clan_members_page_p")}
             className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"
             role="alert"
           >
@@ -125,64 +147,143 @@ export default async function ClanMembersPage({
 
         <div className="mt-8 space-y-6">
           {canManage ? (
-            <section className="border-input rounded-xl border p-5 sm:p-6">
-              <h2 className="text-lg font-semibold">เพิ่มสมาชิก</h2>
+            <section
+              id={htmlId("members_clan_members_page_section")}
+              className="border-input rounded-xl border p-5 sm:p-6"
+            >
+              <h2
+                id={htmlId("members_clan_members_page_h2")}
+                className="text-lg font-semibold"
+              >
+                เพิ่มสมาชิก
+              </h2>
               <div className="mt-5 max-w-xl">
                 <AddMemberForm clanSlug={clan.slug} />
               </div>
             </section>
           ) : (
-            <section className="bg-muted rounded-xl p-5">
-              <p className="text-sm">
+            <section
+              id={htmlId("members_clan_members_page_section_2")}
+              className="bg-muted rounded-xl p-5"
+            >
+              <p
+                id={htmlId("members_clan_members_page_p_2")}
+                className="text-sm"
+              >
                 คุณดูรายชื่อสมาชิกได้ แต่ไม่มีสิทธิ์เพิ่มสมาชิก
               </p>
             </section>
           )}
 
-          <section className="border-input overflow-hidden rounded-xl border">
+          <section
+            id={htmlId("members_clan_members_page_section_3")}
+            className="border-input overflow-hidden rounded-xl border"
+          >
             <div className="border-input flex items-center justify-between border-b px-5 py-4">
-              <h2 className="font-semibold">รายชื่อสมาชิก</h2>
-              <p className="text-muted-foreground text-sm">
+              <h2
+                id={htmlId("members_clan_members_page_h2_2")}
+                className="font-semibold"
+              >
+                รายชื่อสมาชิก
+              </h2>
+              <p
+                id={htmlId("members_clan_members_page_p_3")}
+                className="text-muted-foreground text-sm"
+              >
                 {members?.length ?? 0} คน
               </p>
             </div>
             {error ? (
-              <p className="p-5 text-sm text-red-700" role="alert">
+              <p
+                id={htmlId("members_clan_members_page_p_4")}
+                className="p-5 text-sm text-red-700 dark:text-red-200"
+                role="alert"
+              >
                 โหลดรายชื่อสมาชิกไม่สำเร็จ
               </p>
             ) : members?.length ? (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] text-left text-sm">
-                  <thead className="bg-muted/50 text-muted-foreground">
-                    <tr>
-                      <th scope="col" className="px-5 py-3 font-medium">
+                <table
+                  id={htmlId("members_clan_members_page_table")}
+                  className="w-full min-w-[720px] text-left text-sm"
+                >
+                  <thead
+                    id={htmlId("members_clan_members_page_thead")}
+                    className="bg-muted/50 text-muted-foreground"
+                  >
+                    <tr id={htmlId("members_clan_members_page_tr")}>
+                      <th
+                        id={htmlId("members_clan_members_page_th")}
+                        scope="col"
+                        className="px-5 py-3 font-medium"
+                      >
                         ชื่อตัวละคร
                       </th>
-                      <th scope="col" className="px-5 py-3 font-medium">
+                      <th
+                        id={htmlId("members_clan_members_page_th_2")}
+                        scope="col"
+                        className="px-5 py-3 font-medium"
+                      >
                         สถานะบัญชี
                       </th>
-                      <th scope="col" className="px-5 py-3 font-medium">
+                      <th
+                        id={htmlId("members_clan_members_page_role")}
+                        scope="col"
+                        className="px-5 py-3 font-medium"
+                      >
                         Role
                       </th>
                       {canManage && (
-                        <th scope="col" className="px-5 py-3 font-medium">
+                        <th
+                          id={htmlId("members_clan_members_page_th_3")}
+                          scope="col"
+                          className="px-5 py-3 font-medium"
+                        >
                           จัดการ
                         </th>
                       )}
                     </tr>
                   </thead>
-                  <tbody className="divide-input divide-y">
-                    {members.map((member) => (
-                      <tr key={member.id} className="align-top">
-                        <td className="px-5 py-4 font-medium">
+                  <tbody
+                    id={htmlId("members_clan_members_page_tbody")}
+                    className="divide-input divide-y"
+                  >
+                    {members.map((member, htmlRowIndex1) => (
+                      <tr
+                        id={htmlId(
+                          "members_clan_members_page_tr_2",
+                          htmlRowIndex1,
+                        )}
+                        key={member.id}
+                        className="align-top"
+                      >
+                        <td
+                          id={htmlId(
+                            "members_clan_members_page_member_character_name",
+                            htmlRowIndex1,
+                          )}
+                          className="px-5 py-4 font-medium"
+                        >
                           {member.character_name}
                         </td>
-                        <td className="text-muted-foreground px-5 py-4">
+                        <td
+                          id={htmlId(
+                            "members_clan_members_page_td",
+                            htmlRowIndex1,
+                          )}
+                          className="text-muted-foreground px-5 py-4"
+                        >
                           {member.user_id
                             ? "เชื่อมกับบัญชีแล้ว"
                             : "ยังไม่มีบัญชี"}
                         </td>
-                        <td className="px-5 py-4">
+                        <td
+                          id={htmlId(
+                            "members_clan_members_page_td_2",
+                            htmlRowIndex1,
+                          )}
+                          className="px-5 py-4"
+                        >
                           {canManage && roles?.length ? (
                             <MemberRoleForm
                               clanSlug={clan.slug}
@@ -197,7 +298,13 @@ export default async function ClanMembersPage({
                           )}
                         </td>
                         {canManage && (
-                          <td className="px-5 py-3">
+                          <td
+                            id={htmlId(
+                              "members_clan_members_page_td_3",
+                              htmlRowIndex1,
+                            )}
+                            className="px-5 py-3"
+                          >
                             <MemberRowActions
                               clanSlug={clan.slug}
                               memberId={member.id}
@@ -211,7 +318,10 @@ export default async function ClanMembersPage({
                 </table>
               </div>
             ) : (
-              <p className="text-muted-foreground p-5 text-sm">
+              <p
+                id={htmlId("members_clan_members_page_p_5")}
+                className="text-muted-foreground p-5 text-sm"
+              >
                 ยังไม่มีสมาชิก
               </p>
             )}

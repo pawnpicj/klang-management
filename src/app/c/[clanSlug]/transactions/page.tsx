@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -81,38 +82,70 @@ export default async function TransactionsPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("transactions_transactions_page_main")}
+        className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-6"
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Link
+              id={htmlId("transactions_transactions_page_dashboard")}
               href={`/c/${clan.slug}/dashboard`}
               className="text-primary text-sm font-medium hover:underline"
             >
               ← กลับ Dashboard
             </Link>
-            <h1 className="mt-4 text-3xl font-bold">Transactions</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1
+              id={htmlId("transactions_transactions_page_transactions")}
+              className="mt-4 text-3xl font-bold"
+            >
+              Transactions
+            </h1>
+            <p
+              id={htmlId("transactions_transactions_page_clan_name")}
+              className="text-muted-foreground mt-2"
+            >
               รายการเคลื่อนไหวคลังของ {clan.name}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {deposit.data && (
-              <Button asChild>
-                <Link href={`/c/${clan.slug}/transactions/new/deposit`}>
+              <Button
+                id={htmlId("transactions_transactions_page_button")}
+                asChild
+              >
+                <Link
+                  id={htmlId("transactions_transactions_page_deposit")}
+                  href={`/c/${clan.slug}/transactions/new/deposit`}
+                >
                   Deposit
                 </Link>
               </Button>
             )}
             {withdraw.data && (
-              <Button asChild variant="warning">
-                <Link href={`/c/${clan.slug}/transactions/new/withdraw`}>
+              <Button
+                id={htmlId("transactions_transactions_page_button_2")}
+                asChild
+                variant="warning"
+              >
+                <Link
+                  id={htmlId("transactions_transactions_page_withdraw")}
+                  href={`/c/${clan.slug}/transactions/new/withdraw`}
+                >
                   Withdraw
                 </Link>
               </Button>
             )}
             {transfer.data && (
-              <Button asChild variant="outline">
-                <Link href={`/c/${clan.slug}/transactions/new/transfer`}>
+              <Button
+                id={htmlId("transactions_transactions_page_button_3")}
+                asChild
+                variant="outline"
+              >
+                <Link
+                  id={htmlId("transactions_transactions_page_transfer")}
+                  href={`/c/${clan.slug}/transactions/new/transfer`}
+                >
                   Transfer
                 </Link>
               </Button>
@@ -120,14 +153,24 @@ export default async function TransactionsPage({
           </div>
         </div>
         {filters.error === "permission" && (
-          <p className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-700">
+          <p
+            id={htmlId("transactions_transactions_page_p")}
+            className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200"
+          >
             คุณไม่มีสิทธิ์ทำรายการประเภทนี้
           </p>
         )}
-        <form className="border-input mt-8 grid gap-3 rounded-xl border p-4 sm:grid-cols-5 sm:items-end">
-          <label className="text-sm">
+        <form
+          id={htmlId("transactions_transactions_page_form")}
+          className="border-input mt-8 grid gap-3 rounded-xl border p-4 sm:grid-cols-5 sm:items-end"
+        >
+          <label
+            id={htmlId("transactions_transactions_page_label")}
+            className="text-sm"
+          >
             ประเภท
             <select
+              id={htmlId("transactions_transactions_page_type")}
               name="type"
               defaultValue={filters.type ?? ""}
               className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
@@ -140,9 +183,13 @@ export default async function TransactionsPage({
               ))}
             </select>
           </label>
-          <label className="text-sm">
+          <label
+            id={htmlId("transactions_transactions_page_label_2")}
+            className="text-sm"
+          >
             สถานะ
             <select
+              id={htmlId("transactions_transactions_page_status")}
               name="status"
               defaultValue={filters.status ?? ""}
               className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
@@ -155,67 +202,159 @@ export default async function TransactionsPage({
               )}
             </select>
           </label>
-          <label className="text-sm">
+          <label
+            id={htmlId("transactions_transactions_page_label_3")}
+            className="text-sm"
+          >
             จากวันที่
             <input
+              id={htmlId("transactions_transactions_page_from")}
               type="date"
               name="from"
               defaultValue={filters.from ?? ""}
               className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
             />
           </label>
-          <label className="text-sm">
+          <label
+            id={htmlId("transactions_transactions_page_label_4")}
+            className="text-sm"
+          >
             ถึงวันที่
             <input
+              id={htmlId("transactions_transactions_page_to")}
               type="date"
               name="to"
               defaultValue={filters.to ?? ""}
               className="border-input bg-background mt-1 h-10 w-full rounded-md border px-2"
             />
           </label>
-          <Button type="submit" variant="outline">
+          <Button
+            id={htmlId("transactions_transactions_page_button_4")}
+            type="submit"
+            variant="outline"
+          >
             กรองรายการ
           </Button>
         </form>
-        <section className="border-input mt-6 overflow-hidden rounded-xl border">
+        <section
+          id={htmlId("transactions_transactions_page_section")}
+          className="border-input mt-6 overflow-hidden rounded-xl border"
+        >
           {error ? (
-            <p className="p-5 text-sm text-red-600">
+            <p
+              id={htmlId("transactions_transactions_page_transactions_2")}
+              className="p-5 text-sm text-red-600"
+            >
               โหลด Transactions ไม่สำเร็จ
             </p>
           ) : transactions?.length ? (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-left text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-5 py-3">เลขที่</th>
-                    <th className="px-5 py-3">วันที่</th>
-                    <th className="px-5 py-3">ประเภท</th>
-                    <th className="px-5 py-3">สมาชิก</th>
-                    <th className="px-5 py-3">สถานะ</th>
+              <table
+                id={htmlId("transactions_transactions_page_table")}
+                className="w-full min-w-[800px] text-left text-sm"
+              >
+                <thead
+                  id={htmlId("transactions_transactions_page_thead")}
+                  className="bg-muted/50"
+                >
+                  <tr id={htmlId("transactions_transactions_page_tr")}>
+                    <th
+                      id={htmlId("transactions_transactions_page_th")}
+                      className="px-5 py-3"
+                    >
+                      เลขที่
+                    </th>
+                    <th
+                      id={htmlId("transactions_transactions_page_th_2")}
+                      className="px-5 py-3"
+                    >
+                      วันที่
+                    </th>
+                    <th
+                      id={htmlId("transactions_transactions_page_th_3")}
+                      className="px-5 py-3"
+                    >
+                      ประเภท
+                    </th>
+                    <th
+                      id={htmlId("transactions_transactions_page_th_4")}
+                      className="px-5 py-3"
+                    >
+                      สมาชิก
+                    </th>
+                    <th
+                      id={htmlId("transactions_transactions_page_th_5")}
+                      className="px-5 py-3"
+                    >
+                      สถานะ
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="divide-input divide-y">
-                  {transactions.map((transaction) => (
-                    <tr key={transaction.id}>
-                      <td className="px-5 py-4">
+                <tbody
+                  id={htmlId("transactions_transactions_page_tbody")}
+                  className="divide-input divide-y"
+                >
+                  {transactions.map((transaction, htmlRowIndex1) => (
+                    <tr
+                      id={htmlId(
+                        "transactions_transactions_page_tr_2",
+                        htmlRowIndex1,
+                      )}
+                      key={transaction.id}
+                    >
+                      <td
+                        id={htmlId(
+                          "transactions_transactions_page_td",
+                          htmlRowIndex1,
+                        )}
+                        className="px-5 py-4"
+                      >
                         <Link
+                          id={htmlId(
+                            "transactions_transactions_page_transaction_transaction_no",
+                            htmlRowIndex1,
+                          )}
                           href={`/c/${clan.slug}/transactions/${transaction.id}`}
                           className="text-primary font-medium hover:underline"
                         >
                           {transaction.transaction_no}
                         </Link>
                       </td>
-                      <td className="px-5 py-4">
+                      <td
+                        id={htmlId(
+                          "transactions_transactions_page_transaction_transaction_date",
+                          htmlRowIndex1,
+                        )}
+                        className="px-5 py-4"
+                      >
                         {transaction.transaction_date}
                       </td>
-                      <td className="px-5 py-4">
+                      <td
+                        id={htmlId(
+                          "transactions_transactions_page_td_2",
+                          htmlRowIndex1,
+                        )}
+                        className="px-5 py-4"
+                      >
                         {labels[transaction.transaction_type] ??
                           transaction.transaction_type}
                       </td>
-                      <td className="px-5 py-4">
+                      <td
+                        id={htmlId(
+                          "transactions_transactions_page_td_3",
+                          htmlRowIndex1,
+                        )}
+                        className="px-5 py-4"
+                      >
                         {transaction.contributor?.character_name ?? "—"}
                       </td>
-                      <td className="px-5 py-4">
+                      <td
+                        id={htmlId(
+                          "transactions_transactions_page_td_4",
+                          htmlRowIndex1,
+                        )}
+                        className="px-5 py-4"
+                      >
                         <span className="bg-muted rounded-full px-2.5 py-1 text-xs">
                           {transaction.status}
                         </span>
@@ -226,7 +365,10 @@ export default async function TransactionsPage({
               </table>
             </div>
           ) : (
-            <p className="text-muted-foreground p-5 text-sm">
+            <p
+              id={htmlId("transactions_transactions_page_transaction")}
+              className="text-muted-foreground p-5 text-sm"
+            >
               ยังไม่มี Transaction
             </p>
           )}

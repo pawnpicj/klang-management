@@ -1,5 +1,6 @@
 "use server";
 
+import { memberSocialPlatforms } from "@/features/clans/member-profile";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -203,7 +204,17 @@ export async function updateClanMemberDetailsAction(
   _previousState: ClanActionState,
   formData: FormData,
 ): Promise<ClanActionState> {
-  const parsed = updateClanMemberDetailsSchema.safeParse(formValues(formData));
+  const values = formValues(formData);
+  let equipment: unknown;
+  try {
+    equipment = JSON.parse(String(values.equipment ?? "[]"));
+  } catch {
+    return { status: "error", message: "รายการอุปกรณ์ไม่ถูกต้อง" };
+  }
+  const parsed = updateClanMemberDetailsSchema.safeParse({
+    ...values,
+    equipment,
+  });
   if (!parsed.success) {
     return {
       status: "error",
@@ -226,12 +237,18 @@ export async function updateClanMemberDetailsAction(
     return { status: "error", message: "ไม่พบ Clan/Gang หรือคุณไม่มีสิทธิ์" };
   }
 
-  const { error } = await supabase.rpc("update_clan_member_details", {
+  const { error } = await supabase.rpc("update_clan_member_profile", {
     p_clan_id: clan.id,
     p_member_id: parsed.data.memberId,
     p_character_name: parsed.data.characterName,
     p_role_id: parsed.data.roleId,
     p_delivery_started_on: parsed.data.deliveryStartedOn,
+    p_social_links: Object.fromEntries(
+      memberSocialPlatforms
+        .map((platform) => [platform.key, parsed.data[platform.key]])
+        .filter(([, value]) => Boolean(value)),
+    ),
+    p_equipment: parsed.data.equipment,
   });
   if (error) {
     console.error(
@@ -247,7 +264,7 @@ export async function updateClanMemberDetailsAction(
         : error.code === "23514"
           ? "ต้องมี Manager ที่ Active อย่างน้อย 1 คน"
           : error.code === "22023"
-            ? "วันที่เริ่มส่งไม่ถูกต้อง"
+            ? "วันที่เริ่มส่งหรือลิงก์และรายการอุปกรณ์ไม่ถูกต้อง"
             : "แก้ไขสมาชิกไม่สำเร็จ",
       fieldErrors: duplicateName
         ? { characterName: ["ชื่อตัวละครนี้ถูกใช้งานแล้ว"] }

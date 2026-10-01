@@ -3,6 +3,8 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { clearActionNoticeParams } from "@/lib/action-notice";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
 
 type NoticeProps = {
   children: ReactNode;
@@ -21,6 +23,8 @@ function TimedNotice({
   keys: string;
   signature: string;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const [visible, setVisible] = useState(true);
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -38,7 +42,11 @@ function TimedNotice({
     return () => window.clearTimeout(timer);
   }, [keys, signature]);
   return visible ? (
-    <p className={className} role="status">
+    <p
+      id={htmlId("ui_timed_notice_p", htmlIdPrefix)}
+      className={className}
+      role="status"
+    >
       {children}
     </p>
   ) : null;

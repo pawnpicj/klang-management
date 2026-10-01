@@ -5,6 +5,7 @@ import { CraftItem } from "@/components/clan/craft-item";
 import { createClient } from "@/lib/supabase/server";
 import { getAssetImageUrls } from "@/lib/supabase/asset-images";
 import { resolveRecipes } from "@/features/crafting/recipes";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 export default async function CraftItemPage({
@@ -89,14 +90,23 @@ export default async function CraftItemPage({
   return (
     <>
       <AppHeader activeClan={clan.name} />
-      <main className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-6">
+      <main
+        id={htmlId("craft_item_craft_item_page_main")}
+        className="mx-auto w-full max-w-6xl px-5 py-10 sm:px-6"
+      >
         <Link
+          id={htmlId("craft_item_craft_item_page_dashboard")}
           className="text-primary text-sm hover:underline"
           href={`/c/${clan.slug}/dashboard`}
         >
           ← กลับ Dashboard
         </Link>
-        <h1 className="mt-4 text-3xl font-bold">Craft Item</h1>
+        <h1
+          id={htmlId("craft_item_craft_item_page_craft_item")}
+          className="mt-4 text-3xl font-bold"
+        >
+          Craft Item
+        </h1>
         <CraftItem
           key={
             (recipeRows.data ?? [])

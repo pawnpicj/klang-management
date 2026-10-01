@@ -9,14 +9,22 @@ import {
   adjustInventoryAction,
   transferInventoryAction,
 } from "@/features/inventory/actions";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
 
 const fieldClass =
   "border-input bg-background focus-visible:ring-ring mt-1 h-11 w-full rounded-md border px-3 outline-none focus-visible:ring-2";
 
 function SubmitButton() {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button
+      id={htmlId("clan_submit_button_button", htmlIdPrefix)}
+      type="submit"
+      disabled={pending}
+    >
       {pending ? "กำลังบันทึก…" : "บันทึกการปรับยอด"}
     </Button>
   );
@@ -60,6 +68,8 @@ export function InventoryAdjustmentDialog({
   today: string;
   initialRequestId: string;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [state, action] = useActionState(
     adjustInventoryAction,
@@ -79,6 +89,7 @@ export function InventoryAdjustmentDialog({
   return (
     <>
       <Button
+        id={htmlId("clan_inventory_adjustment_dialog_inventory", htmlIdPrefix)}
         type="button"
         onClick={() => dialogRef.current?.showModal()}
         disabled={!canAdjust}
@@ -86,6 +97,7 @@ export function InventoryAdjustmentDialog({
         <PackagePlus className="size-4" aria-hidden="true" /> ปรับยอด Inventory
       </Button>
       <dialog
+        id={htmlId("clan_inventory_adjustment_dialog_dialog", htmlIdPrefix)}
         ref={dialogRef}
         onClick={(event) => {
           if (event.target === event.currentTarget) dialogRef.current?.close();
@@ -99,12 +111,27 @@ export function InventoryAdjustmentDialog({
                 className="text-primary mb-2 size-6"
                 aria-hidden="true"
               />
-              <h2 className="text-xl font-semibold">ปรับยอด Inventory</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
+              <h2
+                id={htmlId(
+                  "clan_inventory_adjustment_dialog_inventory_2",
+                  htmlIdPrefix,
+                )}
+                className="text-xl font-semibold"
+              >
+                ปรับยอด Inventory
+              </h2>
+              <p
+                id={htmlId("clan_inventory_adjustment_dialog_p", htmlIdPrefix)}
+                className="text-muted-foreground mt-1 text-sm"
+              >
                 เพิ่ม นำออก หรือแก้ไขยอดให้ตรงกับของจริง
               </p>
             </div>
             <button
+              id={htmlId(
+                "clan_inventory_adjustment_dialog_button",
+                htmlIdPrefix,
+              )}
               type="button"
               onClick={() => dialogRef.current?.close()}
               className="hover:bg-muted rounded-md p-1"
@@ -114,16 +141,42 @@ export function InventoryAdjustmentDialog({
             </button>
           </div>
 
-          <form action={action} className="mt-6 space-y-4">
-            <input type="hidden" name="clanSlug" value={clanSlug} />
+          <form
+            id={htmlId("clan_inventory_adjustment_dialog_form", htmlIdPrefix)}
+            action={action}
+            className="mt-6 space-y-4"
+          >
             <input
+              id={htmlId(
+                "clan_inventory_adjustment_dialog_clan_slug",
+                htmlIdPrefix,
+              )}
+              type="hidden"
+              name="clanSlug"
+              value={clanSlug}
+            />
+            <input
+              id={htmlId(
+                "clan_inventory_adjustment_dialog_client_request_id",
+                htmlIdPrefix,
+              )}
               type="hidden"
               name="clientRequestId"
               value={initialRequestId}
             />
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId(
+                "clan_inventory_adjustment_dialog_label",
+                htmlIdPrefix,
+              )}
+              className="block text-sm font-medium"
+            >
               รูปแบบรายการ
               <select
+                id={htmlId(
+                  "clan_inventory_adjustment_dialog_mode",
+                  htmlIdPrefix,
+                )}
                 name="mode"
                 value={mode}
                 onChange={(event) => setMode(event.target.value)}
@@ -134,9 +187,19 @@ export function InventoryAdjustmentDialog({
                 <option value="SET">แก้ไขยอดจริง</option>
               </select>
             </label>
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId(
+                "clan_inventory_adjustment_dialog_label_2",
+                htmlIdPrefix,
+              )}
+              className="block text-sm font-medium"
+            >
               คลัง
               <select
+                id={htmlId(
+                  "clan_inventory_adjustment_dialog_warehouse_id",
+                  htmlIdPrefix,
+                )}
                 name="warehouseId"
                 value={warehouseId}
                 onChange={(event) => setWarehouseId(event.target.value)}
@@ -150,9 +213,19 @@ export function InventoryAdjustmentDialog({
                 ))}
               </select>
             </label>
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId(
+                "clan_inventory_adjustment_dialog_asset",
+                htmlIdPrefix,
+              )}
+              className="block text-sm font-medium"
+            >
               Asset
               <select
+                id={htmlId(
+                  "clan_inventory_adjustment_dialog_asset_id",
+                  htmlIdPrefix,
+                )}
                 name="assetId"
                 value={assetId}
                 onChange={(event) => setAssetId(event.target.value)}
@@ -171,9 +244,19 @@ export function InventoryAdjustmentDialog({
                 {currentBalance.toLocaleString("th-TH")} {asset?.unit}
               </strong>
             </div>
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId(
+                "clan_inventory_adjustment_dialog_label_3",
+                htmlIdPrefix,
+              )}
+              className="block text-sm font-medium"
+            >
               {mode === "SET" ? "ยอดจริง" : "จำนวน"}
               <input
+                id={htmlId(
+                  "clan_inventory_adjustment_dialog_quantity",
+                  htmlIdPrefix,
+                )}
                 name="quantity"
                 type="number"
                 min="0"
@@ -182,9 +265,19 @@ export function InventoryAdjustmentDialog({
                 className={fieldClass}
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId(
+                "clan_inventory_adjustment_dialog_label_4",
+                htmlIdPrefix,
+              )}
+              className="block text-sm font-medium"
+            >
               วันที่
               <input
+                id={htmlId(
+                  "clan_inventory_adjustment_dialog_transaction_date",
+                  htmlIdPrefix,
+                )}
                 name="transactionDate"
                 type="date"
                 max={today}
@@ -193,9 +286,16 @@ export function InventoryAdjustmentDialog({
                 className={fieldClass}
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId("clan_inventory_adjustment_dialog_note", htmlIdPrefix)}
+              className="block text-sm font-medium"
+            >
               Note {mode === "SET" ? "(จำเป็น)" : ""}
               <textarea
+                id={htmlId(
+                  "clan_inventory_adjustment_dialog_note_2",
+                  htmlIdPrefix,
+                )}
                 name="note"
                 required={mode === "SET"}
                 maxLength={1000}
@@ -204,12 +304,23 @@ export function InventoryAdjustmentDialog({
               />
             </label>
             {state.message && (
-              <p className="text-sm text-red-600" role="alert">
+              <p
+                id={htmlId(
+                  "clan_inventory_adjustment_dialog_state_message",
+                  htmlIdPrefix,
+                )}
+                className="text-sm text-red-600"
+                role="alert"
+              >
                 {state.message}
               </p>
             )}
             <div className="flex justify-end gap-2 pt-2">
               <Button
+                id={htmlId(
+                  "clan_inventory_adjustment_dialog_button_2",
+                  htmlIdPrefix,
+                )}
                 type="button"
                 variant="outline"
                 onClick={() => dialogRef.current?.close()}
@@ -230,11 +341,14 @@ export function InventoryHistoryDialog({
 }: {
   rows: InventoryHistoryRow[];
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const dialogRef = useRef<HTMLDialogElement>(null);
   const groupedRows = useMemo(() => rows.slice(0, 100), [rows]);
   return (
     <>
       <Button
+        id={htmlId("clan_inventory_history_dialog_button", htmlIdPrefix)}
         type="button"
         variant="outline"
         onClick={() => dialogRef.current?.showModal()}
@@ -242,6 +356,7 @@ export function InventoryHistoryDialog({
         <History className="size-4" aria-hidden="true" /> ดูประวัติ
       </Button>
       <dialog
+        id={htmlId("clan_inventory_history_dialog_dialog", htmlIdPrefix)}
         ref={dialogRef}
         onClick={(event) => {
           if (event.target === event.currentTarget) dialogRef.current?.close();
@@ -251,12 +366,27 @@ export function InventoryHistoryDialog({
         <div className="p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold">ประวัติ Inventory</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
+              <h2
+                id={htmlId(
+                  "clan_inventory_history_dialog_inventory",
+                  htmlIdPrefix,
+                )}
+                className="text-xl font-semibold"
+              >
+                ประวัติ Inventory
+              </h2>
+              <p
+                id={htmlId("clan_inventory_history_dialog_100", htmlIdPrefix)}
+                className="text-muted-foreground mt-1 text-sm"
+              >
                 รายการล่าสุดไม่เกิน 100 รายการ
               </p>
             </div>
             <button
+              id={htmlId(
+                "clan_inventory_history_dialog_button_2",
+                htmlIdPrefix,
+              )}
               type="button"
               onClick={() => dialogRef.current?.close()}
               className="hover:bg-muted rounded-md p-1"
@@ -267,28 +397,151 @@ export function InventoryHistoryDialog({
           </div>
           {groupedRows.length ? (
             <div className="mt-5 overflow-x-auto rounded-lg border">
-              <table className="w-full min-w-[720px] text-left text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-4 py-3">วันที่</th>
-                    <th className="px-4 py-3">รายการ</th>
-                    <th className="px-4 py-3">Asset</th>
-                    <th className="px-4 py-3">คลัง</th>
-                    <th className="px-4 py-3 text-right">จำนวน</th>
-                    <th className="px-4 py-3">Note</th>
+              <table
+                id={htmlId("clan_inventory_history_dialog_table", htmlIdPrefix)}
+                className="w-full min-w-[720px] text-left text-sm"
+              >
+                <thead
+                  id={htmlId(
+                    "clan_inventory_history_dialog_thead",
+                    htmlIdPrefix,
+                  )}
+                  className="bg-muted/50"
+                >
+                  <tr
+                    id={htmlId(
+                      "clan_inventory_history_dialog_tr",
+                      htmlIdPrefix,
+                    )}
+                  >
+                    <th
+                      id={htmlId(
+                        "clan_inventory_history_dialog_th",
+                        htmlIdPrefix,
+                      )}
+                      className="px-4 py-3"
+                    >
+                      วันที่
+                    </th>
+                    <th
+                      id={htmlId(
+                        "clan_inventory_history_dialog_th_2",
+                        htmlIdPrefix,
+                      )}
+                      className="px-4 py-3"
+                    >
+                      รายการ
+                    </th>
+                    <th
+                      id={htmlId(
+                        "clan_inventory_history_dialog_asset",
+                        htmlIdPrefix,
+                      )}
+                      className="px-4 py-3"
+                    >
+                      Asset
+                    </th>
+                    <th
+                      id={htmlId(
+                        "clan_inventory_history_dialog_th_3",
+                        htmlIdPrefix,
+                      )}
+                      className="px-4 py-3"
+                    >
+                      คลัง
+                    </th>
+                    <th
+                      id={htmlId(
+                        "clan_inventory_history_dialog_th_4",
+                        htmlIdPrefix,
+                      )}
+                      className="px-4 py-3 text-right"
+                    >
+                      จำนวน
+                    </th>
+                    <th
+                      id={htmlId(
+                        "clan_inventory_history_dialog_note",
+                        htmlIdPrefix,
+                      )}
+                      className="px-4 py-3"
+                    >
+                      Note
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="divide-input divide-y">
-                  {groupedRows.map((row) => (
-                    <tr key={row.id}>
-                      <td className="px-4 py-3">{row.date}</td>
-                      <td className="px-4 py-3">{row.type}</td>
-                      <td className="px-4 py-3">{row.assetName}</td>
-                      <td className="px-4 py-3">{row.warehouseName}</td>
-                      <td className="px-4 py-3 text-right tabular-nums">
+                <tbody
+                  id={htmlId(
+                    "clan_inventory_history_dialog_tbody",
+                    htmlIdPrefix,
+                  )}
+                  className="divide-input divide-y"
+                >
+                  {groupedRows.map((row, htmlRowIndex1) => (
+                    <tr
+                      id={htmlId(
+                        "clan_inventory_history_dialog_tr_2",
+                        htmlIdPrefix,
+                        htmlRowIndex1,
+                      )}
+                      key={row.id}
+                    >
+                      <td
+                        id={htmlId(
+                          "clan_inventory_history_dialog_row_date",
+                          htmlIdPrefix,
+                          htmlRowIndex1,
+                        )}
+                        className="px-4 py-3"
+                      >
+                        {row.date}
+                      </td>
+                      <td
+                        id={htmlId(
+                          "clan_inventory_history_dialog_row_type",
+                          htmlIdPrefix,
+                          htmlRowIndex1,
+                        )}
+                        className="px-4 py-3"
+                      >
+                        {row.type}
+                      </td>
+                      <td
+                        id={htmlId(
+                          "clan_inventory_history_dialog_row_asset_name",
+                          htmlIdPrefix,
+                          htmlRowIndex1,
+                        )}
+                        className="px-4 py-3"
+                      >
+                        {row.assetName}
+                      </td>
+                      <td
+                        id={htmlId(
+                          "clan_inventory_history_dialog_row_warehouse_name",
+                          htmlIdPrefix,
+                          htmlRowIndex1,
+                        )}
+                        className="px-4 py-3"
+                      >
+                        {row.warehouseName}
+                      </td>
+                      <td
+                        id={htmlId(
+                          "clan_inventory_history_dialog_row_quantity",
+                          htmlIdPrefix,
+                          htmlRowIndex1,
+                        )}
+                        className="px-4 py-3 text-right tabular-nums"
+                      >
                         {row.quantity}
                       </td>
                       <td
+                        id={htmlId(
+                          "clan_inventory_history_dialog_td",
+                          htmlIdPrefix,
+                          htmlRowIndex1,
+                        )}
                         className="text-muted-foreground max-w-64 truncate px-4 py-3"
                         title={row.note ?? undefined}
                       >
@@ -300,7 +553,13 @@ export function InventoryHistoryDialog({
               </table>
             </div>
           ) : (
-            <p className="text-muted-foreground mt-6 text-sm">
+            <p
+              id={htmlId(
+                "clan_inventory_history_dialog_inventory_2",
+                htmlIdPrefix,
+              )}
+              className="text-muted-foreground mt-6 text-sm"
+            >
               ยังไม่มีประวัติ Inventory
             </p>
           )}
@@ -311,9 +570,15 @@ export function InventoryHistoryDialog({
 }
 
 function TransferSubmitButton() {
+  const htmlIdPrefix = useHtmlId();
+
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button
+      id={htmlId("clan_transfer_submit_button_button", htmlIdPrefix)}
+      type="submit"
+      disabled={pending}
+    >
       {pending ? "กำลัง Transfer…" : "ยืนยัน Transfer"}
     </Button>
   );
@@ -334,6 +599,8 @@ export function InventoryTransferDialog({
   today: string;
   initialRequestId: string;
 }) {
+  const htmlIdPrefix = useHtmlId();
+
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [state, action] = useActionState(
     transferInventoryAction,
@@ -365,6 +632,7 @@ export function InventoryTransferDialog({
   return (
     <>
       <Button
+        id={htmlId("clan_inventory_transfer_dialog_transfer", htmlIdPrefix)}
         type="button"
         variant="outline"
         onClick={() => dialogRef.current?.showModal()}
@@ -376,6 +644,7 @@ export function InventoryTransferDialog({
         <ArrowRightLeft className="size-4" aria-hidden="true" /> Transfer สินค้า
       </Button>
       <dialog
+        id={htmlId("clan_inventory_transfer_dialog_dialog", htmlIdPrefix)}
         ref={dialogRef}
         onClick={(event) => {
           if (event.target === event.currentTarget) dialogRef.current?.close();
@@ -389,12 +658,27 @@ export function InventoryTransferDialog({
                 className="text-primary mb-2 size-6"
                 aria-hidden="true"
               />
-              <h2 className="text-xl font-semibold">Transfer สินค้า</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
+              <h2
+                id={htmlId(
+                  "clan_inventory_transfer_dialog_transfer_2",
+                  htmlIdPrefix,
+                )}
+                className="text-xl font-semibold"
+              >
+                Transfer สินค้า
+              </h2>
+              <p
+                id={htmlId(
+                  "clan_inventory_transfer_dialog_asset_warehouse",
+                  htmlIdPrefix,
+                )}
+                className="text-muted-foreground mt-1 text-sm"
+              >
                 ย้าย Asset ระหว่าง Warehouse โดยยอดรวมไม่เปลี่ยน
               </p>
             </div>
             <button
+              id={htmlId("clan_inventory_transfer_dialog_button", htmlIdPrefix)}
               type="button"
               onClick={() => dialogRef.current?.close()}
               className="hover:bg-muted rounded-md p-1"
@@ -404,16 +688,39 @@ export function InventoryTransferDialog({
             </button>
           </div>
 
-          <form action={action} className="mt-6 space-y-4">
-            <input type="hidden" name="clanSlug" value={clanSlug} />
+          <form
+            id={htmlId("clan_inventory_transfer_dialog_form", htmlIdPrefix)}
+            action={action}
+            className="mt-6 space-y-4"
+          >
             <input
+              id={htmlId(
+                "clan_inventory_transfer_dialog_clan_slug",
+                htmlIdPrefix,
+              )}
+              type="hidden"
+              name="clanSlug"
+              value={clanSlug}
+            />
+            <input
+              id={htmlId(
+                "clan_inventory_transfer_dialog_client_request_id",
+                htmlIdPrefix,
+              )}
               type="hidden"
               name="clientRequestId"
               value={initialRequestId}
             />
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId("clan_inventory_transfer_dialog_label", htmlIdPrefix)}
+              className="block text-sm font-medium"
+            >
               คลังต้นทาง
               <select
+                id={htmlId(
+                  "clan_inventory_transfer_dialog_from_warehouse_id",
+                  htmlIdPrefix,
+                )}
                 name="fromWarehouseId"
                 value={fromWarehouseId}
                 onChange={(event) => changeSource(event.target.value)}
@@ -427,9 +734,19 @@ export function InventoryTransferDialog({
                 ))}
               </select>
             </label>
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId(
+                "clan_inventory_transfer_dialog_label_2",
+                htmlIdPrefix,
+              )}
+              className="block text-sm font-medium"
+            >
               คลังปลายทาง
               <select
+                id={htmlId(
+                  "clan_inventory_transfer_dialog_to_warehouse_id",
+                  htmlIdPrefix,
+                )}
                 name="toWarehouseId"
                 value={toWarehouseId}
                 onChange={(event) => setToWarehouseId(event.target.value)}
@@ -445,9 +762,16 @@ export function InventoryTransferDialog({
                   ))}
               </select>
             </label>
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId("clan_inventory_transfer_dialog_asset", htmlIdPrefix)}
+              className="block text-sm font-medium"
+            >
               Asset
               <select
+                id={htmlId(
+                  "clan_inventory_transfer_dialog_asset_id",
+                  htmlIdPrefix,
+                )}
                 name="assetId"
                 value={assetId}
                 onChange={(event) => setAssetId(event.target.value)}
@@ -466,9 +790,19 @@ export function InventoryTransferDialog({
                 {currentBalance.toLocaleString("th-TH")} {asset?.unit}
               </strong>
             </div>
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId(
+                "clan_inventory_transfer_dialog_transfer_3",
+                htmlIdPrefix,
+              )}
+              className="block text-sm font-medium"
+            >
               จำนวนที่ Transfer
               <input
+                id={htmlId(
+                  "clan_inventory_transfer_dialog_quantity",
+                  htmlIdPrefix,
+                )}
                 name="quantity"
                 type="number"
                 min="0"
@@ -477,9 +811,19 @@ export function InventoryTransferDialog({
                 className={fieldClass}
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId(
+                "clan_inventory_transfer_dialog_label_3",
+                htmlIdPrefix,
+              )}
+              className="block text-sm font-medium"
+            >
               วันที่
               <input
+                id={htmlId(
+                  "clan_inventory_transfer_dialog_transaction_date",
+                  htmlIdPrefix,
+                )}
                 name="transactionDate"
                 type="date"
                 max={today}
@@ -488,9 +832,16 @@ export function InventoryTransferDialog({
                 className={fieldClass}
               />
             </label>
-            <label className="block text-sm font-medium">
+            <label
+              id={htmlId("clan_inventory_transfer_dialog_note", htmlIdPrefix)}
+              className="block text-sm font-medium"
+            >
               Note
               <textarea
+                id={htmlId(
+                  "clan_inventory_transfer_dialog_note_2",
+                  htmlIdPrefix,
+                )}
                 name="note"
                 maxLength={1000}
                 rows={3}
@@ -498,12 +849,23 @@ export function InventoryTransferDialog({
               />
             </label>
             {state.message && (
-              <p className="text-sm text-red-600" role="alert">
+              <p
+                id={htmlId(
+                  "clan_inventory_transfer_dialog_state_message",
+                  htmlIdPrefix,
+                )}
+                className="text-sm text-red-600"
+                role="alert"
+              >
                 {state.message}
               </p>
             )}
             <div className="flex justify-end gap-2 pt-2">
               <Button
+                id={htmlId(
+                  "clan_inventory_transfer_dialog_button_2",
+                  htmlIdPrefix,
+                )}
                 type="button"
                 variant="outline"
                 onClick={() => dialogRef.current?.close()}

@@ -4,6 +4,8 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { safeNextPath } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/client";
+import { htmlId } from "@/lib/html-id";
+import { useId as useHtmlId } from "react";
 
 const emailOtpTypes = new Set<EmailOtpType>([
   "signup",
@@ -15,6 +17,8 @@ const emailOtpTypes = new Set<EmailOtpType>([
 ]);
 
 export default function AuthCallbackPage() {
+  const htmlIdPrefix = useHtmlId();
+
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -62,10 +66,22 @@ export default function AuthCallbackPage() {
 
   if (failed) {
     return (
-      <main className="flex min-h-screen items-center justify-center px-6">
+      <main
+        id={htmlId("callback_auth_callback_page_main", htmlIdPrefix)}
+        className="flex min-h-screen items-center justify-center px-6"
+      >
         <div className="max-w-md text-center">
-          <h1 className="text-2xl font-bold">ยืนยันตัวตนไม่สำเร็จ</h1>
-          <a className="text-primary mt-4 inline-block underline" href="/login">
+          <h1
+            id={htmlId("callback_auth_callback_page_h1", htmlIdPrefix)}
+            className="text-2xl font-bold"
+          >
+            ยืนยันตัวตนไม่สำเร็จ
+          </h1>
+          <a
+            id={htmlId("callback_auth_callback_page_login", htmlIdPrefix)}
+            className="text-primary mt-4 inline-block underline"
+            href="/login"
+          >
             กลับไปหน้าเข้าสู่ระบบ
           </a>
         </div>
@@ -74,8 +90,16 @@ export default function AuthCallbackPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <p className="text-muted-foreground">กำลังยืนยันตัวตน…</p>
+    <main
+      id={htmlId("callback_auth_callback_page_main_2", htmlIdPrefix)}
+      className="flex min-h-screen items-center justify-center px-6"
+    >
+      <p
+        id={htmlId("callback_auth_callback_page_p", htmlIdPrefix)}
+        className="text-muted-foreground"
+      >
+        กำลังยืนยันตัวตน…
+      </p>
     </main>
   );
 }

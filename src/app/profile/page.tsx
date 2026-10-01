@@ -5,6 +5,7 @@ import { ProfileForm } from "@/components/auth/auth-forms";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/features/auth/actions";
 import { createClient } from "@/lib/supabase/server";
+import { htmlId } from "@/lib/html-id";
 
 export const dynamic = "force-dynamic";
 
@@ -35,9 +36,16 @@ export default async function ProfilePage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-2xl px-6 py-12">
-      <header className="flex items-center justify-between gap-4">
+    <main
+      id={htmlId("profile_profile_page_main")}
+      className="mx-auto min-h-screen w-full max-w-2xl px-6 py-12"
+    >
+      <header
+        id={htmlId("profile_profile_page_header")}
+        className="flex items-center justify-between gap-4"
+      >
         <Image
+          id={htmlId("profile_profile_page_image")}
           src="/klang-icon.png"
           alt="KLANG Management"
           width={1254}
@@ -46,20 +54,40 @@ export default async function ProfilePage() {
           className="size-14 object-contain"
         />
         <div className="flex items-center gap-2">
-          <Button asChild variant="outline">
-            <Link href="/clans">Clan/Gang</Link>
+          <Button
+            id={htmlId("profile_profile_page_button")}
+            asChild
+            variant="outline"
+          >
+            <Link id={htmlId("profile_profile_page_clans")} href="/clans">
+              Clan/Gang
+            </Link>
           </Button>
-          <form action={logoutAction}>
-            <Button type="submit" variant="outline">
+          <form id={htmlId("profile_profile_page_form")} action={logoutAction}>
+            <Button
+              id={htmlId("profile_profile_page_button_2")}
+              type="submit"
+              variant="outline"
+            >
               ออกจากระบบ
             </Button>
           </form>
         </div>
       </header>
 
-      <section className="mt-10">
-        <p className="text-primary text-sm font-semibold">บัญชีของฉัน</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">โปรไฟล์</h1>
+      <section id={htmlId("profile_profile_page_section")} className="mt-10">
+        <p
+          id={htmlId("profile_profile_page_p")}
+          className="text-primary text-sm font-semibold"
+        >
+          บัญชีของฉัน
+        </p>
+        <h1
+          id={htmlId("profile_profile_page_h1")}
+          className="mt-2 text-3xl font-bold tracking-tight"
+        >
+          โปรไฟล์
+        </h1>
         <dl className="border-input mt-6 grid gap-4 rounded-xl border p-5 sm:grid-cols-2">
           <div>
             <dt className="text-muted-foreground text-sm">ชื่อผู้ใช้</dt>
@@ -72,8 +100,16 @@ export default async function ProfilePage() {
         </dl>
       </section>
 
-      <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
-        <h2 className="text-lg font-semibold">แก้ไขโปรไฟล์</h2>
+      <section
+        id={htmlId("profile_profile_page_section_2")}
+        className="border-input mt-8 rounded-xl border p-5 sm:p-6"
+      >
+        <h2
+          id={htmlId("profile_profile_page_h2")}
+          className="text-lg font-semibold"
+        >
+          แก้ไขโปรไฟล์
+        </h2>
         <div className="mt-5">
           <ProfileForm
             displayName={profile.display_name}
