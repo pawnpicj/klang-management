@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { socialLinkSchema, socialPlatforms } from "./social-links";
 
 export const clanSlugSchema = z
   .string()
@@ -44,6 +45,11 @@ export const updateClanSchema = z.object({
   type: z.enum(["CLAN", "GANG"], "กรุณาเลือกประเภท"),
   note: z.string().trim().max(2000, "Note ต้องไม่เกิน 2,000 ตัวอักษร"),
   rules: z.string().trim().max(10000, "Rule ต้องไม่เกิน 10,000 ตัวอักษร"),
+  discordUrl: socialLinkSchema(socialPlatforms[0].hosts),
+  lineUrl: socialLinkSchema(socialPlatforms[1].hosts),
+  telegramUrl: socialLinkSchema(socialPlatforms[2].hosts),
+  facebookUrl: socialLinkSchema(socialPlatforms[3].hosts),
+  tiktokUrl: socialLinkSchema(socialPlatforms[4].hosts),
 });
 
 export const updateClanMemberSchema = z.object({

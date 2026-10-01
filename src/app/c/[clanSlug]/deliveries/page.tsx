@@ -1,3 +1,4 @@
+import { ActionNotice } from "@/components/ui/action-notice";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
@@ -34,22 +35,15 @@ export default async function DeliveriesPage({
     .select("id,name,slug,delivery_tracking_started_on")
     .eq("slug", clanSlug)
     .maybeSingle();
+  // The clans_read RLS policy validates active Clan membership on this lookup.
   if (!clan) notFound();
 
   const [
-    { data: membership },
     { data: members, error: membersError },
     { data: assets, error: assetsError },
     { data: deliveries, error: deliveriesError },
     { data: canManage },
   ] = await Promise.all([
-    supabase
-      .from("clan_members")
-      .select("id")
-      .eq("clan_id", clan.id)
-      .eq("user_id", claims.claims.sub)
-      .eq("status", "ACTIVE")
-      .maybeSingle(),
     supabase
       .from("clan_members")
       .select(
@@ -77,9 +71,14 @@ export default async function DeliveriesPage({
       p_permission_code: "member.manage",
     }),
   ]);
-  if (!membership) notFound();
 
   const loadError = membersError || assetsError || deliveriesError;
+  const deliveriesByMember = new Map<string, NonNullable<typeof deliveries>>();
+  for (const delivery of deliveries ?? []) {
+    const records = deliveriesByMember.get(delivery.member_id) ?? [];
+    records.push(delivery);
+    deliveriesByMember.set(delivery.member_id, records);
+  }
   const rows = (members ?? []).map((member) => {
     const summary = summarizeMemberDeliveries({
       member: {
@@ -88,7 +87,7 @@ export default async function DeliveriesPage({
         delivery_started_on: member.delivery_started_on ?? member.joined_at,
       },
       assets: assets ?? [],
-      deliveries: deliveries ?? [],
+      deliveries: deliveriesByMember.get(member.id) ?? [],
       trackingStartedOn: clan.delivery_tracking_started_on,
       throughDate: today,
     });
@@ -129,28 +128,28 @@ export default async function DeliveriesPage({
           </Button>
         </div>
         {query.recorded === "1" && (
-          <p
+          <ActionNotice
+            queryKeys={["recorded", "updated", "deleted"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
-            role="status"
           >
             บันทึกการส่งของแล้ว
-          </p>
+          </ActionNotice>
         )}
         {query.updated === "1" && (
-          <p
+          <ActionNotice
+            queryKeys={["recorded", "updated", "deleted"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
-            role="status"
           >
             แก้ไขรายการส่งของแล้ว
-          </p>
+          </ActionNotice>
         )}
         {query.deleted === "1" && (
-          <p
+          <ActionNotice
+            queryKeys={["recorded", "updated", "deleted"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
-            role="status"
           >
             ลบรายการส่งของแล้ว
-          </p>
+          </ActionNotice>
         )}
         {query.deleteError === "1" && (
           <p

@@ -260,6 +260,18 @@ export function CreateAssetForm({ clanSlug }: { clanSlug: string }) {
           className={inputClass}
         />
       </label>
+      <label className="text-sm font-medium">
+        แจ้งเตือนเมื่อเหลือต่ำกว่า
+        <input
+          name="lowStockThreshold"
+          type="number"
+          min="0"
+          step="any"
+          required
+          defaultValue="0"
+          className={inputClass}
+        />
+      </label>
       <div className="sm:col-span-2 lg:col-span-4">
         <AssetImageField />
       </div>
@@ -291,6 +303,7 @@ export function AssetActions({
     id: string;
     name: string;
     required_quantity: number;
+    low_stock_threshold: number;
     is_active: boolean;
   };
 }) {
@@ -323,6 +336,18 @@ export function AssetActions({
             step="any"
             required
             defaultValue={asset.required_quantity}
+            className={inputClass}
+          />
+        </label>
+        <label className="text-sm font-medium">
+          แจ้งเตือนเมื่อเหลือต่ำกว่า
+          <input
+            name="lowStockThreshold"
+            type="number"
+            min="0"
+            step="any"
+            required
+            defaultValue={asset.low_stock_threshold}
             className={inputClass}
           />
         </label>

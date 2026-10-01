@@ -1,3 +1,4 @@
+import { ActionNotice } from "@/components/ui/action-notice";
 import Link from "next/link";
 import { Swords, UsersRound } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -72,12 +73,12 @@ export default async function ClansPage({
         </div>
 
         {query.archived === "1" && (
-          <p
+          <ActionNotice
+            queryKeys={["archived"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-            role="status"
           >
             ลบ Clan/Gang แล้ว โดยเก็บประวัติไว้ในสถานะ Archive
-          </p>
+          </ActionNotice>
         )}
         {query.error && (
           <p

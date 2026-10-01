@@ -5,9 +5,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ClanActionState } from "@/features/clans/state";
 import {
+  adjustInventorySchema,
   assetReferenceSchema,
   createAssetSchema,
   createWarehouseSchema,
+  transferInventorySchema,
   updateAssetSchema,
   updateWarehouseSchema,
   warehouseReferenceSchema,
@@ -185,7 +187,7 @@ export async function createAssetAction(
     : null;
   if (image.file && !imagePath) return invalid("อัปโหลดรูปภาพไม่สำเร็จ");
   const { error } = await context.supabase.rpc(
-    "create_asset_with_required_quantity",
+    "create_asset_with_inventory_settings",
     {
       p_clan_id: context.clan.id,
       p_code: parsed.data.code,
@@ -193,6 +195,7 @@ export async function createAssetAction(
       p_asset_type: parsed.data.assetType,
       p_unit: parsed.data.unit,
       p_required_quantity: parsed.data.requiredQuantity,
+      p_low_stock_threshold: parsed.data.lowStockThreshold,
       p_decimal_places: 0,
       p_allow_negative: false,
       p_image_url: imagePath ?? undefined,
@@ -210,6 +213,7 @@ export async function createAssetAction(
   }
   revalidatePath(`/c/${parsed.data.clanSlug}/assets`);
   revalidatePath(`/c/${parsed.data.clanSlug}/deliveries`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/inventory`);
   redirect(`/c/${parsed.data.clanSlug}/assets?created=1`);
 }
 
@@ -236,12 +240,13 @@ export async function updateAssetAction(
     : null;
   if (image.file && !imagePath) return invalid("อัปโหลดรูปภาพไม่สำเร็จ");
   const { error } = await context.supabase.rpc(
-    "update_asset_details_with_required_quantity",
+    "update_asset_with_inventory_settings",
     {
       p_clan_id: context.clan.id,
       p_asset_id: parsed.data.assetId,
       p_name: parsed.data.name,
       p_required_quantity: parsed.data.requiredQuantity,
+      p_low_stock_threshold: parsed.data.lowStockThreshold,
       p_image_url: imagePath ?? asset.image_url ?? undefined,
     },
   );
@@ -260,6 +265,7 @@ export async function updateAssetAction(
   }
   revalidatePath(`/c/${parsed.data.clanSlug}/assets`);
   revalidatePath(`/c/${parsed.data.clanSlug}/deliveries`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/inventory`);
   redirect(`/c/${parsed.data.clanSlug}/assets?updated=1`);
 }
 
@@ -280,5 +286,79 @@ export async function deactivateAssetAction(formData: FormData) {
   }
   revalidatePath(`/c/${parsed.data.clanSlug}/assets`);
   revalidatePath(`/c/${parsed.data.clanSlug}/deliveries`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/inventory`);
   redirect(`/c/${parsed.data.clanSlug}/assets?deactivated=1`);
+}
+
+export async function adjustInventoryAction(
+  _state: ClanActionState,
+  formData: FormData,
+): Promise<ClanActionState> {
+  const parsed = adjustInventorySchema.safeParse(values(formData));
+  if (!parsed.success) {
+    return invalid(parsed.error.issues[0]?.message ?? "กรุณาตรวจสอบข้อมูล");
+  }
+  const context = await authenticatedClan(parsed.data.clanSlug);
+  if (!context) return invalid("ไม่พบ Clan/Gang หรือคุณไม่มีสิทธิ์");
+  const { error } = await context.supabase.rpc("adjust_inventory", {
+    p_clan_id: context.clan.id,
+    p_warehouse_id: parsed.data.warehouseId,
+    p_asset_id: parsed.data.assetId,
+    p_mode: parsed.data.mode,
+    p_quantity: parsed.data.quantity,
+    p_transaction_date: parsed.data.transactionDate,
+    p_note: parsed.data.note,
+    p_client_request_id: parsed.data.clientRequestId,
+  });
+  if (error) {
+    console.error("Inventory adjustment failed", error.code, error.message);
+    return invalid(
+      error.code === "42501"
+        ? "คุณไม่มีสิทธิ์ปรับยอด Inventory"
+        : error.code === "23514"
+          ? "ยอดคงเหลือไม่เพียงพอ"
+          : error.code === "22023"
+            ? "ยอดใหม่ต้องต่างจากยอดปัจจุบัน และข้อมูลต้องถูกต้อง"
+            : "ปรับยอด Inventory ไม่สำเร็จ",
+    );
+  }
+  revalidatePath(`/c/${parsed.data.clanSlug}/inventory`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/warehouses`);
+  redirect(`/c/${parsed.data.clanSlug}/inventory?updated=1`);
+}
+export async function transferInventoryAction(
+  _state: ClanActionState,
+  formData: FormData,
+): Promise<ClanActionState> {
+  const parsed = transferInventorySchema.safeParse(values(formData));
+  if (!parsed.success) {
+    return invalid(parsed.error.issues[0]?.message ?? "กรุณาตรวจสอบข้อมูล");
+  }
+  const context = await authenticatedClan(parsed.data.clanSlug);
+  if (!context) return invalid("ไม่พบ Clan/Gang หรือคุณไม่มีสิทธิ์");
+  const { error } = await context.supabase.rpc("transfer_inventory", {
+    p_clan_id: context.clan.id,
+    p_from_warehouse_id: parsed.data.fromWarehouseId,
+    p_to_warehouse_id: parsed.data.toWarehouseId,
+    p_asset_id: parsed.data.assetId,
+    p_quantity: parsed.data.quantity,
+    p_transaction_date: parsed.data.transactionDate,
+    p_note: parsed.data.note,
+    p_client_request_id: parsed.data.clientRequestId,
+  });
+  if (error) {
+    console.error("Inventory transfer failed", error.code, error.message);
+    return invalid(
+      error.code === "42501"
+        ? "คุณไม่มีสิทธิ์ Transfer Inventory"
+        : error.code === "23514"
+          ? "ยอดในคลังต้นทางไม่เพียงพอ"
+          : error.code === "22023"
+            ? "คลังหรือข้อมูล Transfer ไม่ถูกต้อง"
+            : "Transfer สินค้าไม่สำเร็จ",
+    );
+  }
+  revalidatePath(`/c/${parsed.data.clanSlug}/inventory`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/warehouses`);
+  redirect(`/c/${parsed.data.clanSlug}/inventory?transferred=1`);
 }

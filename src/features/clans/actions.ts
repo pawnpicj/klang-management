@@ -143,13 +143,21 @@ export async function updateClanAction(
     return { status: "error", message: "ไม่พบ Clan/Gang หรือคุณไม่มีสิทธิ์" };
   }
 
-  const { error } = await supabase.rpc("update_clan_details_with_content", {
-    p_clan_id: clan.id,
-    p_name: parsed.data.name,
-    p_type: parsed.data.type,
-    p_note: parsed.data.note,
-    p_rules: parsed.data.rules,
-  });
+  const { error } = await supabase.rpc(
+    "update_clan_details_with_social_links",
+    {
+      p_clan_id: clan.id,
+      p_name: parsed.data.name,
+      p_type: parsed.data.type,
+      p_note: parsed.data.note,
+      p_rules: parsed.data.rules,
+      p_discord_url: parsed.data.discordUrl,
+      p_line_url: parsed.data.lineUrl,
+      p_telegram_url: parsed.data.telegramUrl,
+      p_facebook_url: parsed.data.facebookUrl,
+      p_tiktok_url: parsed.data.tiktokUrl,
+    },
+  );
   if (error) {
     console.error("Clan update failed", error.code, error.message);
     return { status: "error", message: "แก้ไข Clan/Gang ไม่สำเร็จ" };

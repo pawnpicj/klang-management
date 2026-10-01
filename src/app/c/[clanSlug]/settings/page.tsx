@@ -1,3 +1,4 @@
+import { ActionNotice } from "@/components/ui/action-notice";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
@@ -26,7 +27,7 @@ export default async function ClanSettingsPage({
   const { data: memberships, error: membershipError } = await supabase
     .from("clan_members")
     .select(
-      "clan:clans!clan_members_clan_id_fkey(id,name,slug,type,status,note,rules)",
+      "clan:clans!clan_members_clan_id_fkey(id,name,slug,type,status,note,rules,discord_url,line_url,telegram_url,facebook_url,tiktok_url)",
     )
     .eq("user_id", userId)
     .eq("status", "ACTIVE");
@@ -53,21 +54,21 @@ export default async function ClanSettingsPage({
       <AppHeader activeClan={clan.name} />
       <main className="mx-auto w-full max-w-xl px-5 py-10 sm:px-6">
         <Link
-          href="/clans"
+          href={`/c/${clan.slug}/dashboard`}
           className="text-primary text-sm font-medium underline-offset-4 hover:underline"
         >
-          ← กลับรายการ Clan/Gang
+          ← กลับ Dashboard
         </Link>
         <h1 className="mt-5 text-3xl font-bold tracking-tight">
           แก้ไข Clan/Gang
         </h1>
         {query.updated === "1" && (
-          <p
+          <ActionNotice
+            queryKeys={["updated"]}
             className="mt-5 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-            role="status"
           >
             บันทึกข้อมูลแล้ว
-          </p>
+          </ActionNotice>
         )}
         <section className="border-input mt-8 rounded-xl border p-5 sm:p-6">
           <ClanSettingsForm
@@ -76,6 +77,13 @@ export default async function ClanSettingsPage({
             type={clan.type}
             note={clan.note}
             rules={clan.rules}
+            socialLinks={{
+              discordUrl: clan.discord_url,
+              lineUrl: clan.line_url,
+              telegramUrl: clan.telegram_url,
+              facebookUrl: clan.facebook_url,
+              tiktokUrl: clan.tiktok_url,
+            }}
           />
         </section>
         <section className="border-input mt-6 rounded-xl border p-5 sm:p-6">

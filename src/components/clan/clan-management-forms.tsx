@@ -11,6 +11,8 @@ import {
   updateClanMemberAction,
   updateClanMemberRoleAction,
 } from "@/features/clans/actions";
+import { SocialLogo } from "@/components/clan/social-logo";
+import { socialPlatforms } from "@/features/clans/social-links";
 import { initialClanState } from "@/features/clans/state";
 
 function PendingButton({
@@ -76,12 +78,20 @@ export function ClanSettingsForm({
   type,
   note,
   rules,
+  socialLinks,
 }: {
   clanSlug: string;
   name: string;
   type: string;
   note: string | null;
   rules: string | null;
+  socialLinks: {
+    discordUrl: string | null;
+    lineUrl: string | null;
+    telegramUrl: string | null;
+    facebookUrl: string | null;
+    tiktokUrl: string | null;
+  };
 }) {
   const [state, action] = useActionState(updateClanAction, initialClanState);
   return (
@@ -143,6 +153,32 @@ export function ClanSettingsForm({
           </span>
         )}
       </label>
+      <fieldset className="space-y-4">
+        <legend className="mb-3 font-semibold">Social Media</legend>
+        {socialPlatforms.map((platform) => (
+          <label key={platform.key} className="block text-sm font-medium">
+            <span className="flex items-center gap-2">
+              <span className="[&>svg]:size-5">
+                <SocialLogo platform={platform.key} />
+              </span>
+              {platform.label}
+            </span>
+            <input
+              type="url"
+              name={platform.key}
+              defaultValue={socialLinks[platform.key] ?? ""}
+              placeholder={platform.placeholder}
+              maxLength={1000}
+              className="border-input bg-background focus-visible:ring-ring mt-1 h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
+            />
+            {state.fieldErrors?.[platform.key]?.[0] && (
+              <span className="mt-1 block text-sm text-red-600">
+                {state.fieldErrors[platform.key][0]}
+              </span>
+            )}
+          </label>
+        ))}
+      </fieldset>
       {state.message && (
         <p
           className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200"

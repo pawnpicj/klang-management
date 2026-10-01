@@ -1,3 +1,4 @@
+import { ActionNotice } from "@/components/ui/action-notice";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
@@ -97,12 +98,12 @@ export default async function WarehousesPage({
           </Button>
         </div>
         {notice && (
-          <p
+          <ActionNotice
+            queryKeys={["created", "updated", "defaultChanged", "deactivated"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
-            role="status"
           >
             {notice}
-          </p>
+          </ActionNotice>
         )}
         {query.error && (
           <p

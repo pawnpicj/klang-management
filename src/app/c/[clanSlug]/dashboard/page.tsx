@@ -1,12 +1,9 @@
+import { isSocialLink, socialPlatforms } from "@/features/clans/social-links";
+import { SocialLogo } from "@/components/clan/social-logo";
+import { ActionNotice } from "@/components/ui/action-notice";
 import Link from "next/link";
-import {
-  Package,
-  Settings2,
-  ShieldCheck,
-  Truck,
-  UsersRound,
-  Warehouse,
-} from "lucide-react";
+import { Settings2, UsersRound } from "lucide-react";
+import { DashboardNavigation } from "@/components/clan/dashboard-navigation";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
 import { DashboardMemberEditor } from "@/components/clan/dashboard-member-editor";
@@ -36,26 +33,19 @@ export default async function ClanDashboardPage({
   const { data: clan } = await supabase
     .from("clans")
     .select(
-      "id,name,slug,type,status,game_name,server_name,note,rules,delivery_tracking_started_on",
+      "id,name,slug,type,status,game_name,server_name,note,rules,discord_url,line_url,telegram_url,facebook_url,tiktok_url,delivery_tracking_started_on",
     )
     .eq("slug", clanSlug)
     .maybeSingle();
+  // The clans_read RLS policy validates active Clan membership on this lookup.
   if (!clan) notFound();
 
   const [
-    { data: membership },
     { data: members },
     { data: roles },
     { data: canManageMembers },
     { data: canManageClan },
   ] = await Promise.all([
-    supabase
-      .from("clan_members")
-      .select("id")
-      .eq("clan_id", clan.id)
-      .eq("user_id", userId)
-      .eq("status", "ACTIVE")
-      .maybeSingle(),
     supabase
       .from("clan_members")
       .select(
@@ -78,48 +68,72 @@ export default async function ClanDashboardPage({
       p_permission_code: "clan.manage",
     }),
   ]);
-  if (!membership) notFound();
 
   return (
     <>
       <AppHeader activeClan={clan.name} />
       <main className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-primary text-sm font-semibold">
-              {clan.type === "CLAN" ? "Clan" : "Gang"} · {clan.slug}
-            </p>
-            <div className="mt-2 flex items-center gap-3">
+        <div className="relative pt-12 sm:pt-0">
+          <div className="w-full">
+            <div className="flex flex-wrap items-center gap-3 sm:pr-48">
               <h1 className="text-3xl font-bold tracking-tight">{clan.name}</h1>
               <div className="flex items-center gap-2">
-                {canManageMembers && (
-                  <Button
-                    asChild
-                    size="sm"
-                    className="size-9 p-0"
-                    aria-label="จัดการสมาชิก"
-                    title="จัดการสมาชิก"
-                  >
-                    <Link href={`/c/${clan.slug}/members`}>
-                      <UsersRound className="size-4" aria-hidden="true" />
-                    </Link>
-                  </Button>
-                )}
                 {canManageClan && (
                   <Button
                     asChild
                     size="sm"
                     variant="warning"
-                    className="size-9 p-0"
+                    className="size-6 rounded-md p-0"
                     aria-label="แก้ไข Clan/Gang"
                     title="แก้ไข Clan/Gang"
                   >
                     <Link href={`/c/${clan.slug}/settings`}>
-                      <Settings2 className="size-4" aria-hidden="true" />
+                      <Settings2 className="size-3" aria-hidden="true" />
                     </Link>
                   </Button>
                 )}
               </div>
+              {[
+                clan.discord_url,
+                clan.line_url,
+                clan.telegram_url,
+                clan.facebook_url,
+                clan.tiktok_url,
+              ].some(Boolean) && (
+                <section
+                  aria-label="Social Media"
+                  className="ml-auto flex flex-wrap justify-end gap-3"
+                >
+                  {socialPlatforms.map((platform, index) => {
+                    const url = [
+                      clan.discord_url,
+                      clan.line_url,
+                      clan.telegram_url,
+                      clan.facebook_url,
+                      clan.tiktok_url,
+                    ][index];
+                    if (!url || !isSocialLink(url, platform.hosts)) return null;
+                    return (
+                      <Button
+                        key={platform.key}
+                        asChild
+                        variant="outline"
+                        className="size-8 rounded-full border-0 bg-transparent p-0 hover:bg-transparent hover:opacity-80"
+                      >
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`เปิด ${platform.label}`}
+                          title={platform.label}
+                        >
+                          <SocialLogo platform={platform.key} />
+                        </a>
+                      </Button>
+                    );
+                  })}
+                </section>
+              )}
             </div>
             {(clan.game_name || clan.server_name) && (
               <p className="text-muted-foreground mt-2">
@@ -127,62 +141,29 @@ export default async function ClanDashboardPage({
               </p>
             )}
           </div>
-          <Button asChild variant="outline">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="absolute top-0 right-0 h-8 px-3 text-xs"
+          >
             <Link href="/clans">เปลี่ยน Clan/Gang</Link>
           </Button>
         </div>
 
         {query.memberUpdated === "1" && (
-          <p
+          <ActionNotice
+            queryKeys={["memberUpdated"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
-            role="status"
           >
             แก้ไขข้อมูลสมาชิกแล้ว
-          </p>
+          </ActionNotice>
         )}
 
-        <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Button
-            asChild
-            variant="outline"
-            className="h-auto justify-start p-4"
-          >
-            <Link href={`/c/${clan.slug}/deliveries`}>
-              <Truck className="text-primary size-5" aria-hidden="true" />{" "}
-              Delivery
-            </Link>
-          </Button>{" "}
-          <Button
-            asChild
-            variant="outline"
-            className="h-auto justify-start p-4"
-          >
-            <Link href={`/c/${clan.slug}/roles`}>
-              <ShieldCheck className="text-primary size-5" aria-hidden="true" />{" "}
-              Roles และ Permissions
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="h-auto justify-start p-4"
-          >
-            <Link href={`/c/${clan.slug}/assets`}>
-              <Package className="text-primary size-5" aria-hidden="true" />{" "}
-              Assets
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="h-auto justify-start p-4"
-          >
-            <Link href={`/c/${clan.slug}/warehouses`}>
-              <Warehouse className="text-primary size-5" aria-hidden="true" />{" "}
-              Warehouses
-            </Link>
-          </Button>
-        </section>
+        <DashboardNavigation
+          clanSlug={clan.slug}
+          canManageMembers={Boolean(canManageMembers)}
+        />
 
         <section className="mt-8 grid gap-4 md:grid-cols-2">
           <article className="border-input rounded-xl border p-5">

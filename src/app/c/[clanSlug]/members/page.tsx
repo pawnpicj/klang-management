@@ -1,3 +1,4 @@
+import { ActionNotice } from "@/components/ui/action-notice";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AddMemberForm } from "@/components/clan/add-member-form";
@@ -80,36 +81,36 @@ export default async function ClanMembersPage({
         </div>
 
         {query.added === "1" && (
-          <p
+          <ActionNotice
+            queryKeys={["added", "updated", "removed", "roleUpdated"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-            role="status"
           >
             เพิ่มสมาชิกแล้ว
-          </p>
+          </ActionNotice>
         )}
         {query.updated === "1" && (
-          <p
+          <ActionNotice
+            queryKeys={["added", "updated", "removed", "roleUpdated"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-            role="status"
           >
             แก้ไขชื่อสมาชิกแล้ว
-          </p>
+          </ActionNotice>
         )}
         {query.removed === "1" && (
-          <p
+          <ActionNotice
+            queryKeys={["added", "updated", "removed", "roleUpdated"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-            role="status"
           >
             นำสมาชิกออกแล้ว
-          </p>
+          </ActionNotice>
         )}
         {query.roleUpdated === "1" && (
-          <p
+          <ActionNotice
+            queryKeys={["added", "updated", "removed", "roleUpdated"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-            role="status"
           >
             เปลี่ยน Role สมาชิกแล้ว
-          </p>
+          </ActionNotice>
         )}
         {query.error && (
           <p

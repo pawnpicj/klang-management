@@ -46,17 +46,15 @@ export function DashboardMemberEditor({
 
   return (
     <>
-      <Button
+      <button
         type="button"
-        size="sm"
-        variant="warning"
-        className="size-8 shrink-0 p-0"
+        className="focus-visible:ring-ring inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-transparent p-0 text-amber-500 transition-colors hover:text-amber-600 focus-visible:ring-2 focus-visible:outline-none"
         onClick={() => dialogRef.current?.showModal()}
         aria-label={`แก้ไขสมาชิก ${member.characterName}`}
         title="แก้ไขสมาชิก"
       >
         <Pencil className="size-4" aria-hidden="true" />
-      </Button>
+      </button>
       <dialog
         ref={dialogRef}
         onClick={(event) => {

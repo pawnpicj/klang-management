@@ -1,3 +1,4 @@
+import { ActionNotice } from "@/components/ui/action-notice";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -7,6 +8,7 @@ import {
   CreateAssetForm,
 } from "@/components/clan/inventory-management-forms";
 import { Button } from "@/components/ui/button";
+import { getAssetImageUrls } from "@/lib/supabase/asset-images";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +39,9 @@ export default async function AssetsPage({
   const [{ data: assets, error }, { data: canManage }] = await Promise.all([
     supabase
       .from("assets")
-      .select("id,code,name,required_quantity,image_url,is_active")
+      .select(
+        "id,code,name,required_quantity,low_stock_threshold,image_url,is_active",
+      )
       .eq("clan_id", clan.id)
       .order("is_active", { ascending: false })
       .order("code"),
@@ -46,20 +50,7 @@ export default async function AssetsPage({
       p_permission_code: "asset.manage",
     }),
   ]);
-  const imageUrls = new Map(
-    await Promise.all(
-      (assets ?? []).map(async (asset) => {
-        if (!asset.image_url) return [asset.id, null] as const;
-        if (/^https?:\/\//i.test(asset.image_url)) {
-          return [asset.id, asset.image_url] as const;
-        }
-        const { data } = await supabase.storage
-          .from("asset-images")
-          .createSignedUrl(asset.image_url, 3600);
-        return [asset.id, data?.signedUrl ?? null] as const;
-      }),
-    ),
-  );
+  const imageUrls = await getAssetImageUrls(supabase, assets ?? []);
   const notice = query.created
     ? "สร้าง Asset แล้ว"
     : query.updated
@@ -89,12 +80,12 @@ export default async function AssetsPage({
           </Button>
         </div>
         {notice && (
-          <p
+          <ActionNotice
+            queryKeys={["created", "updated", "deactivated"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
-            role="status"
           >
             {notice}
-          </p>
+          </ActionNotice>
         )}
         {query.error && (
           <p

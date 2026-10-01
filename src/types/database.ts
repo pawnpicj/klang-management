@@ -22,6 +22,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          low_stock_threshold: number
           name: string
           required_quantity: number
           unit: string
@@ -38,6 +39,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          low_stock_threshold?: number
           name: string
           required_quantity?: number
           unit: string
@@ -54,6 +56,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          low_stock_threshold?: number
           name?: string
           required_quantity?: number
           unit?: string
@@ -346,8 +349,11 @@ export type Database = {
           created_at: string
           created_by: string
           delivery_tracking_started_on: string
+          discord_url: string | null
+          facebook_url: string | null
           game_name: string | null
           id: string
+          line_url: string | null
           logo_url: string | null
           name: string
           note: string | null
@@ -355,6 +361,8 @@ export type Database = {
           server_name: string | null
           slug: string
           status: string
+          telegram_url: string | null
+          tiktok_url: string | null
           type: string
           updated_at: string
         }
@@ -362,8 +370,11 @@ export type Database = {
           created_at?: string
           created_by: string
           delivery_tracking_started_on?: string
+          discord_url?: string | null
+          facebook_url?: string | null
           game_name?: string | null
           id?: string
+          line_url?: string | null
           logo_url?: string | null
           name: string
           note?: string | null
@@ -371,6 +382,8 @@ export type Database = {
           server_name?: string | null
           slug: string
           status?: string
+          telegram_url?: string | null
+          tiktok_url?: string | null
           type: string
           updated_at?: string
         }
@@ -378,8 +391,11 @@ export type Database = {
           created_at?: string
           created_by?: string
           delivery_tracking_started_on?: string
+          discord_url?: string | null
+          facebook_url?: string | null
           game_name?: string | null
           id?: string
+          line_url?: string | null
           logo_url?: string | null
           name?: string
           note?: string | null
@@ -387,12 +403,315 @@ export type Database = {
           server_name?: string | null
           slug?: string
           status?: string
+          telegram_url?: string | null
+          tiktok_url?: string | null
           type?: string
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "clans_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      craft_recipes: {
+        Row: {
+          clan_id: string
+          created_at: string
+          created_by: string
+          id: string
+          materials: NonNullable<Json>
+          name: string
+          output: NonNullable<Json>
+          updated_at: string
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          materials: NonNullable<Json>
+          name: string
+          output: NonNullable<Json>
+          updated_at?: string
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          materials?: NonNullable<Json>
+          name?: string
+          output?: NonNullable<Json>
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "craft_recipes_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "craft_recipes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      craft_settings: {
+        Row: {
+          clan_id: string
+          updated_at: string
+          updated_by: string
+          warehouse_id: string
+        }
+        Insert: {
+          clan_id: string
+          updated_at?: string
+          updated_by: string
+          warehouse_id: string
+        }
+        Update: {
+          clan_id?: string
+          updated_at?: string
+          updated_by?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "craft_settings_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: true
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "craft_settings_clan_id_warehouse_id_fkey"
+            columns: ["clan_id", "warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["clan_id", "id"]
+          },
+          {
+            foreignKeyName: "craft_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loop_checkpoints: {
+        Row: {
+          clan_id: string
+          created_at: string
+          id: string
+          loop_number: number
+          loop_timer_id: string
+          recorded_at: string
+          recorded_by: string
+          scheduled_for: string
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          id?: string
+          loop_number: number
+          loop_timer_id: string
+          recorded_at?: string
+          recorded_by: string
+          scheduled_for: string
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          id?: string
+          loop_number?: number
+          loop_timer_id?: string
+          recorded_at?: string
+          recorded_by?: string
+          scheduled_for?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loop_checkpoints_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loop_checkpoints_clan_id_loop_timer_id_fkey"
+            columns: ["clan_id", "loop_timer_id"]
+            isOneToOne: false
+            referencedRelation: "loop_timers"
+            referencedColumns: ["clan_id", "id"]
+          },
+          {
+            foreignKeyName: "loop_checkpoints_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loop_timer_steps: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_at: string | null
+          clan_id: string
+          clock_time: string | null
+          countdown_seconds: number | null
+          created_at: string
+          id: string
+          location: string | null
+          loop_timer_id: string
+          siren_enabled: boolean
+          sound_enabled: boolean
+          started_at: string | null
+          step_number: number
+          timer_type: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_at?: string | null
+          clan_id: string
+          clock_time?: string | null
+          countdown_seconds?: number | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          loop_timer_id: string
+          siren_enabled?: boolean
+          sound_enabled?: boolean
+          started_at?: string | null
+          step_number: number
+          timer_type: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_at?: string | null
+          clan_id?: string
+          clock_time?: string | null
+          countdown_seconds?: number | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          loop_timer_id?: string
+          siren_enabled?: boolean
+          sound_enabled?: boolean
+          started_at?: string | null
+          step_number?: number
+          timer_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loop_timer_steps_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loop_timer_steps_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loop_timer_steps_clan_id_loop_timer_id_fkey"
+            columns: ["clan_id", "loop_timer_id"]
+            isOneToOne: false
+            referencedRelation: "loop_timers"
+            referencedColumns: ["clan_id", "id"]
+          },
+        ]
+      }
+      loop_timers: {
+        Row: {
+          clan_id: string
+          clock_time: string | null
+          countdown_seconds: number | null
+          created_at: string
+          created_by: string
+          current_loop: number
+          id: string
+          loop_count: number
+          member_id: string | null
+          name: string
+          next_alert_at: string | null
+          owner_type: string
+          siren_enabled: boolean
+          status: string
+          timer_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          clan_id: string
+          clock_time?: string | null
+          countdown_seconds?: number | null
+          created_at?: string
+          created_by: string
+          current_loop?: number
+          id?: string
+          loop_count?: number
+          member_id?: string | null
+          name: string
+          next_alert_at?: string | null
+          owner_type: string
+          siren_enabled?: boolean
+          status?: string
+          timer_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          clan_id?: string
+          clock_time?: string | null
+          countdown_seconds?: number | null
+          created_at?: string
+          created_by?: string
+          current_loop?: number
+          id?: string
+          loop_count?: number
+          member_id?: string | null
+          name?: string
+          next_alert_at?: string | null
+          owner_type?: string
+          siren_enabled?: boolean
+          status?: string
+          timer_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loop_timers_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loop_timers_clan_id_member_id_fkey"
+            columns: ["clan_id", "member_id"]
+            isOneToOne: false
+            referencedRelation: "clan_members"
+            referencedColumns: ["clan_id", "id"]
+          },
+          {
+            foreignKeyName: "loop_timers_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -410,6 +729,7 @@ export type Database = {
           member_id: string
           quantity: number
           recorded_by: string
+          warehouse_id: string
         }
         Insert: {
           asset_id: string
@@ -420,6 +740,7 @@ export type Database = {
           member_id: string
           quantity: number
           recorded_by: string
+          warehouse_id: string
         }
         Update: {
           asset_id?: string
@@ -430,8 +751,16 @@ export type Database = {
           member_id?: string
           quantity?: number
           recorded_by?: string
+          warehouse_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "member_deliveries_clan_id_asset_id_fkey"
+            columns: ["clan_id", "asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["clan_id", "id"]
+          },
           {
             foreignKeyName: "member_deliveries_clan_id_fkey"
             columns: ["clan_id"]
@@ -447,10 +776,10 @@ export type Database = {
             referencedColumns: ["clan_id", "id"]
           },
           {
-            foreignKeyName: "member_deliveries_clan_id_asset_id_fkey"
-            columns: ["clan_id", "asset_id"]
+            foreignKeyName: "member_deliveries_clan_warehouse_fkey"
+            columns: ["clan_id", "warehouse_id"]
             isOneToOne: false
-            referencedRelation: "assets"
+            referencedRelation: "warehouses"
             referencedColumns: ["clan_id", "id"]
           },
           {
@@ -785,27 +1114,73 @@ export type Database = {
           clan_id: string | null
           warehouse_id: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "transaction_items_clan_id_asset_id_fkey"
-            columns: ["clan_id", "asset_id"]
-            isOneToOne: false
-            referencedRelation: "assets"
-            referencedColumns: ["clan_id", "id"]
-          },
-          {
-            foreignKeyName: "transaction_items_clan_id_fkey"
-            columns: ["clan_id"]
-            isOneToOne: false
-            referencedRelation: "clans"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {
+      acknowledge_loop_timer: {
+        Args: { p_clan_id: string; p_loop_timer_id: string }
+        Returns: string
+      }
+      acknowledge_loop_timer_step: {
+        Args: {
+          p_clan_id: string
+          p_loop_timer_id: string
+          p_step_number: number
+        }
+        Returns: string
+      }
       add_clan_member: {
         Args: { p_character_name: string; p_clan_id: string }
+        Returns: string
+      }
+      add_loop_timer_step: {
+        Args: {
+          p_clan_id: string
+          p_clock_time: string
+          p_countdown_seconds: number
+          p_loop_timer_id: string
+          p_siren_enabled: boolean
+          p_timer_type: string
+        }
+        Returns: string
+      }
+      add_loop_timer_step_with_alerts: {
+        Args: {
+          p_clan_id: string
+          p_clock_time: string
+          p_countdown_seconds: number
+          p_loop_timer_id: string
+          p_siren_enabled: boolean
+          p_sound_enabled: boolean
+          p_timer_type: string
+        }
+        Returns: string
+      }
+      add_loop_timer_step_with_location: {
+        Args: {
+          p_clan_id: string
+          p_clock_time: string
+          p_countdown_seconds: number
+          p_location: string
+          p_loop_timer_id: string
+          p_siren_enabled: boolean
+          p_sound_enabled: boolean
+          p_timer_type: string
+        }
+        Returns: string
+      }
+      adjust_inventory: {
+        Args: {
+          p_asset_id: string
+          p_clan_id: string
+          p_client_request_id: string
+          p_mode: string
+          p_note: string
+          p_quantity: number
+          p_transaction_date: string
+          p_warehouse_id: string
+        }
         Returns: string
       }
       archive_clan: { Args: { p_clan_id: string }; Returns: string }
@@ -828,6 +1203,10 @@ export type Database = {
       can_write_transaction: {
         Args: { p_clan_id: string; p_type: string }
         Returns: boolean
+      }
+      cancel_loop_timer: {
+        Args: { p_clan_id: string; p_loop_timer_id: string }
+        Returns: string
       }
       consume_login_rate_limit: {
         Args: {
@@ -864,6 +1243,21 @@ export type Database = {
         }
         Returns: string
       }
+      create_asset_with_inventory_settings: {
+        Args: {
+          p_allow_negative?: boolean
+          p_asset_type: string
+          p_clan_id: string
+          p_code: string
+          p_decimal_places?: number
+          p_image_url?: string
+          p_low_stock_threshold?: number
+          p_name: string
+          p_required_quantity?: number
+          p_unit: string
+        }
+        Returns: string
+      }
       create_asset_with_required_quantity: {
         Args: {
           p_allow_negative?: boolean
@@ -895,6 +1289,39 @@ export type Database = {
         }
         Returns: string
       }
+      create_loop_timer: {
+        Args: {
+          p_clan_id: string
+          p_clock_time: string
+          p_countdown_seconds: number
+          p_loop_count: number
+          p_member_id: string
+          p_name: string
+          p_owner_type: string
+          p_siren_enabled: boolean
+          p_timer_type: string
+        }
+        Returns: string
+      }
+      create_loop_timer_with_steps: {
+        Args: {
+          p_clan_id: string
+          p_member_id: string
+          p_name: string
+          p_owner_type: string
+          p_steps: Json
+        }
+        Returns: string
+      }
+      create_loop_topic: {
+        Args: {
+          p_clan_id: string
+          p_member_id: string
+          p_name: string
+          p_owner_type: string
+        }
+        Returns: string
+      }
       create_warehouse: {
         Args: { p_clan_id: string; p_description?: string; p_name: string }
         Returns: string
@@ -907,8 +1334,20 @@ export type Database = {
         Args: { p_clan_id: string; p_warehouse_id: string }
         Returns: string
       }
+      delete_craft_recipe: {
+        Args: { p_clan_id: string; p_recipe_id: string }
+        Returns: string
+      }
       delete_custom_role: {
         Args: { p_clan_id: string; p_role_id: string }
+        Returns: string
+      }
+      delete_loop_timer: {
+        Args: { p_clan_id: string; p_loop_timer_id: string }
+        Returns: undefined
+      }
+      delete_member_delivery: {
+        Args: { p_clan_id: string; p_delivery_id: string }
         Returns: string
       }
       has_clan_permission: {
@@ -918,17 +1357,6 @@ export type Database = {
       is_clan_leader: { Args: { p_clan_id: string }; Returns: boolean }
       is_clan_member: { Args: { p_clan_id: string }; Returns: boolean }
       post_transaction: { Args: { p_transaction_id: string }; Returns: string }
-      register_transaction_attachment: {
-        Args: {
-          p_clan_id: string
-          p_file_size: number
-          p_mime_type: string
-          p_original_name: string
-          p_storage_path: string
-          p_transaction_id: string
-        }
-        Returns: string
-      }
       record_member_deliveries: {
         Args: {
           p_clan_id: string
@@ -948,17 +1376,14 @@ export type Database = {
         }
         Returns: string
       }
-      delete_member_delivery: {
-        Args: { p_clan_id: string; p_delivery_id: string }
-        Returns: string
-      }
-      update_member_delivery: {
+      register_transaction_attachment: {
         Args: {
-          p_asset_id: string
           p_clan_id: string
-          p_delivery_date: string
-          p_delivery_id: string
-          p_quantity: number
+          p_file_size: number
+          p_mime_type: string
+          p_original_name: string
+          p_storage_path: string
+          p_transaction_id: string
         }
         Returns: string
       }
@@ -966,13 +1391,48 @@ export type Database = {
         Args: { p_clan_id: string; p_member_id: string }
         Returns: string
       }
+      remove_loop_timer_step: {
+        Args: {
+          p_clan_id: string
+          p_loop_timer_id: string
+          p_step_number: number
+        }
+        Returns: undefined
+      }
       reset_login_rate_limit: {
         Args: { p_key_hash: string }
         Returns: undefined
       }
       resolve_login_email: { Args: { p_username: string }; Returns: string }
+      save_craft_recipe: {
+        Args: {
+          p_clan_id: string
+          p_materials: Json
+          p_name: string
+          p_output: Json
+          p_recipe_id: string
+        }
+        Returns: string
+      }
+      save_craft_settings: {
+        Args: { p_clan_id: string; p_warehouse_id: string }
+        Returns: string
+      }
       set_default_warehouse: {
         Args: { p_clan_id: string; p_warehouse_id: string }
+        Returns: string
+      }
+      transfer_inventory: {
+        Args: {
+          p_asset_id: string
+          p_clan_id: string
+          p_client_request_id: string
+          p_from_warehouse_id: string
+          p_note: string
+          p_quantity: number
+          p_to_warehouse_id: string
+          p_transaction_date: string
+        }
         Returns: string
       }
       update_asset_details: {
@@ -994,6 +1454,17 @@ export type Database = {
         }
         Returns: string
       }
+      update_asset_with_inventory_settings: {
+        Args: {
+          p_asset_id: string
+          p_clan_id: string
+          p_image_url?: string
+          p_low_stock_threshold: number
+          p_name: string
+          p_required_quantity: number
+        }
+        Returns: string
+      }
       update_clan_details: {
         Args: { p_clan_id: string; p_name: string; p_type: string }
         Returns: string
@@ -1004,6 +1475,34 @@ export type Database = {
           p_name: string
           p_note: string
           p_rules: string
+          p_type: string
+        }
+        Returns: string
+      }
+      update_clan_details_with_social: {
+        Args: {
+          p_clan_id: string
+          p_discord_url: string
+          p_line_url: string
+          p_name: string
+          p_note: string
+          p_rules: string
+          p_telegram_url: string
+          p_type: string
+        }
+        Returns: string
+      }
+      update_clan_details_with_social_links: {
+        Args: {
+          p_clan_id: string
+          p_discord_url: string
+          p_facebook_url: string
+          p_line_url: string
+          p_name: string
+          p_note: string
+          p_rules: string
+          p_telegram_url: string
+          p_tiktok_url: string
           p_type: string
         }
         Returns: string
@@ -1036,6 +1535,16 @@ export type Database = {
           p_name: string
           p_permission_codes?: string[]
           p_role_id: string
+        }
+        Returns: string
+      }
+      update_member_delivery: {
+        Args: {
+          p_asset_id: string
+          p_clan_id: string
+          p_delivery_date: string
+          p_delivery_id: string
+          p_quantity: number
         }
         Returns: string
       }

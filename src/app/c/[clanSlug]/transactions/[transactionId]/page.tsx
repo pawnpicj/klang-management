@@ -1,3 +1,4 @@
+import { ActionNotice } from "@/components/ui/action-notice";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/clan/app-header";
@@ -124,12 +125,12 @@ export default async function TransactionDetailPage({
           )}
         </div>
         {notice && (
-          <p
+          <ActionNotice
+            queryKeys={["created", "uploaded", "voided"]}
             className="mt-6 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
-            role="status"
           >
             {notice}
-          </p>
+          </ActionNotice>
         )}
         {query.error && (
           <p className="mt-6 rounded-md bg-red-50 p-3 text-sm text-red-700">

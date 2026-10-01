@@ -79,6 +79,8 @@ export async function recordDeliveryAction(
   }
 
   revalidatePath(`/c/${parsed.data.clanSlug}/deliveries`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/inventory`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/warehouses`);
   redirect(`/c/${parsed.data.clanSlug}/deliveries?recorded=1`);
 }
 
@@ -104,6 +106,8 @@ export async function deleteDeliveryAction(formData: FormData): Promise<void> {
   }
 
   revalidatePath(`/c/${parsed.data.clanSlug}/deliveries`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/inventory`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/warehouses`);
   redirect(`/c/${parsed.data.clanSlug}/deliveries?deleted=1`);
 }
 
@@ -150,5 +154,7 @@ export async function updateDeliveryAction(
   }
 
   revalidatePath(`/c/${parsed.data.clanSlug}/deliveries`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/inventory`);
+  revalidatePath(`/c/${parsed.data.clanSlug}/warehouses`);
   redirect(`/c/${parsed.data.clanSlug}/deliveries?updated=1`);
 }

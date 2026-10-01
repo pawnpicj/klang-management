@@ -224,7 +224,7 @@ describe("schema, migrations and clan creation", () => {
     ).toBe(true);
     expect(
       (await sql(alice, "select * from public.permissions")).rowCount,
-    ).toBe(18);
+    ).toBe(24);
     expect(
       (
         await sql(alice, "select * from public.audit_logs where clan_id=$1", [
@@ -706,6 +706,7 @@ describe("schema, migrations and clan creation", () => {
         [clanA, memberId, assetA],
       )
     ).rows[0].id;
+    expect(await balance(mainA)).toBe("5.0000");
 
     await sql(
       alice,
@@ -720,6 +721,7 @@ describe("schema, migrations and clan creation", () => {
         )
       ).rows[0],
     ).toEqual({ quantity: "7.5000", recorded_by: alice });
+    expect(await balance(mainA)).toBe("7.5000");
 
     await expect(
       sql(
@@ -747,6 +749,109 @@ describe("schema, migrations and clan creation", () => {
         )
       ).rows[0].count,
     ).toBe(0);
+    expect(await balance(mainA)).toBe("0");
+  });
+  it("adjusts inventory idempotently and enforces inventory.manage", async () => {
+    const requestId = randomUUID();
+    const addedId = (
+      await sql(
+        alice,
+        "select public.adjust_inventory($1,$2,$3,'ADD',20,(now() at time zone 'Asia/Bangkok')::date,'Opening balance',$4) as id",
+        [clanA, mainA, assetA, requestId],
+      )
+    ).rows[0].id;
+    const retryId = (
+      await sql(
+        alice,
+        "select public.adjust_inventory($1,$2,$3,'ADD',20,(now() at time zone 'Asia/Bangkok')::date,'Opening balance',$4) as id",
+        [clanA, mainA, assetA, requestId],
+      )
+    ).rows[0].id;
+    expect(retryId).toBe(addedId);
+    expect(await balance(mainA)).toBe("20.0000");
+
+    await sql(
+      alice,
+      "select public.adjust_inventory($1,$2,$3,'REMOVE',5,(now() at time zone 'Asia/Bangkok')::date,'Used',$4)",
+      [clanA, mainA, assetA, randomUUID()],
+    );
+    expect(await balance(mainA)).toBe("15.0000");
+
+    const setRequestId = randomUUID();
+    const setId = (
+      await sql(
+        alice,
+        "select public.adjust_inventory($1,$2,$3,'SET',3,(now() at time zone 'Asia/Bangkok')::date,'Physical count',$4) as id",
+        [clanA, mainA, assetA, setRequestId],
+      )
+    ).rows[0].id;
+    const setRetryId = (
+      await sql(
+        alice,
+        "select public.adjust_inventory($1,$2,$3,'SET',3,(now() at time zone 'Asia/Bangkok')::date,'Physical count',$4) as id",
+        [clanA, mainA, assetA, setRequestId],
+      )
+    ).rows[0].id;
+    expect(setRetryId).toBe(setId);
+    expect(await balance(mainA)).toBe("3.0000");
+
+    await expect(
+      sql(
+        member,
+        "select public.adjust_inventory($1,$2,$3,'ADD',1,(now() at time zone 'Asia/Bangkok')::date,'No access',$4)",
+        [clanA, mainA, assetA, randomUUID()],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(
+        alice,
+        "select public.adjust_inventory($1,$2,$3,'REMOVE',4,(now() at time zone 'Asia/Bangkok')::date,'Too much',$4)",
+        [clanA, mainA, assetA, randomUUID()],
+      ),
+    ).rejects.toMatchObject({ code: "23514" });
+  });
+  it("transfers inventory atomically and idempotently", async () => {
+    await deposit("10");
+    const requestId = randomUUID();
+    const transferId = (
+      await sql(
+        alice,
+        "select public.transfer_inventory($1,$2,$3,$4,4,(now() at time zone 'Asia/Bangkok')::date,'Move to reserve',$5) as id",
+        [clanA, mainA, secondA, assetA, requestId],
+      )
+    ).rows[0].id;
+    const retryId = (
+      await sql(
+        alice,
+        "select public.transfer_inventory($1,$2,$3,$4,4,(now() at time zone 'Asia/Bangkok')::date,'Move to reserve',$5) as id",
+        [clanA, mainA, secondA, assetA, requestId],
+      )
+    ).rows[0].id;
+    expect(retryId).toBe(transferId);
+    expect(await balance(mainA)).toBe("6.0000");
+    expect(await balance(secondA)).toBe("4.0000");
+
+    await expect(
+      sql(
+        member,
+        "select public.transfer_inventory($1,$2,$3,$4,1,(now() at time zone 'Asia/Bangkok')::date,'No access',$5)",
+        [clanA, mainA, secondA, assetA, randomUUID()],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(
+        alice,
+        "select public.transfer_inventory($1,$2,$3,$4,7,(now() at time zone 'Asia/Bangkok')::date,'Too much',$5)",
+        [clanA, mainA, secondA, assetA, randomUUID()],
+      ),
+    ).rejects.toMatchObject({ code: "23514" });
+    await expect(
+      sql(
+        alice,
+        "select public.transfer_inventory($1,$2,$2,$3,1,(now() at time zone 'Asia/Bangkok')::date,'Same warehouse',$4)",
+        [clanA, mainA, assetA, randomUUID()],
+      ),
+    ).rejects.toMatchObject({ code: "22023" });
   });
   it("prevents deactivating Assets and Warehouses with balances", async () => {
     await deposit("10");
@@ -1776,6 +1881,303 @@ describe("Phase 3 authentication database boundaries", () => {
   });
 });
 
+describe("Loop timers and checkpoints", () => {
+  it("runs countdown rows together and acknowledges each row", async () => {
+    const loopId = (
+      await sql(
+        alice,
+        "select public.create_loop_timer_with_steps($1,'Daily run','CLAN',null,$2::jsonb) as id",
+        [
+          clanA,
+          JSON.stringify([
+            {
+              timerType: "COUNTDOWN",
+              countdownSeconds: 60,
+              clockTime: null,
+              sirenEnabled: true,
+            },
+            {
+              timerType: "COUNTDOWN",
+              countdownSeconds: 120,
+              clockTime: null,
+              sirenEnabled: false,
+            },
+          ]),
+        ],
+      )
+    ).rows[0].id;
+
+    expect(
+      (
+        await sql(
+          member,
+          "select count(*)::int as count from public.loop_timers where id=$1",
+          [loopId],
+        )
+      ).rows[0].count,
+    ).toBe(1);
+    expect(
+      (
+        await sql(
+          alice,
+          "select array_agg(extract(epoch from (alert_at-started_at))::int order by step_number) as durations from public.loop_timer_steps where loop_timer_id=$1",
+          [loopId],
+        )
+      ).rows[0].durations,
+    ).toEqual([60, 120]);
+    await expect(
+      sql(
+        member,
+        "select public.create_loop_timer($1,'Denied','CLAN',null,1,'COUNTDOWN',60,null,true)",
+        [clanA],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+
+    await admin.query(
+      "update public.loop_timer_steps set alert_at=case when step_number=1 then now()-interval '1 second' else now()+interval '1 hour' end where loop_timer_id=$1",
+      [loopId],
+    );
+    await expect(
+      sql(member, "select public.acknowledge_loop_timer_step($1,$2,1)", [
+        clanA,
+        loopId,
+      ]),
+    ).rejects.toMatchObject({ code: "42501" });
+    expect(
+      (
+        await sql(
+          alice,
+          "select public.acknowledge_loop_timer_step($1,$2,1) as status",
+          [clanA, loopId],
+        )
+      ).rows[0].status,
+    ).toBe("ACTIVE");
+    expect(
+      (
+        await sql(
+          alice,
+          "select count(*) filter (where acknowledged_at is not null)::int as done,count(*) filter (where acknowledged_at is null)::int as pending from public.loop_timer_steps where loop_timer_id=$1",
+          [loopId],
+        )
+      ).rows[0],
+    ).toEqual({ done: 1, pending: 1 });
+
+    await admin.query(
+      "update public.loop_timer_steps set alert_at=now()-interval '1 second' where loop_timer_id=$1 and step_number=2",
+      [loopId],
+    );
+    expect(
+      (
+        await sql(
+          alice,
+          "select public.acknowledge_loop_timer_step($1,$2,2) as status",
+          [clanA, loopId],
+        )
+      ).rows[0].status,
+    ).toBe("COMPLETED");
+    expect(
+      (
+        await sql(
+          alice,
+          "select status::text,current_loop,next_alert_at from public.loop_timers where id=$1",
+          [loopId],
+        )
+      ).rows[0],
+    ).toMatchObject({
+      status: "COMPLETED",
+      current_loop: 2,
+      next_alert_at: null,
+    });
+  });
+
+  it("creates an empty topic before its first Loop row", async () => {
+    const topicId = (
+      await sql(
+        alice,
+        "select public.create_loop_topic($1,'Empty topic','CLAN',null) as id",
+        [clanA],
+      )
+    ).rows[0].id;
+    expect(
+      (
+        await sql(
+          alice,
+          "select status::text,loop_count,current_loop from public.loop_timers where id=$1",
+          [topicId],
+        )
+      ).rows[0],
+    ).toMatchObject({ status: "DRAFT", loop_count: 0, current_loop: 0 });
+    expect(
+      (
+        await sql(
+          alice,
+          "select count(*)::int as count from public.loop_timer_steps where loop_timer_id=$1",
+          [topicId],
+        )
+      ).rows[0].count,
+    ).toBe(0);
+
+    await sql(
+      alice,
+      "select public.add_loop_timer_step_with_location($1,$2,'','COUNTDOWN',90,null,false,false)",
+      [clanA, topicId],
+    );
+    expect(
+      (
+        await sql(
+          alice,
+          "select status::text,loop_count,current_loop from public.loop_timers where id=$1",
+          [topicId],
+        )
+      ).rows[0],
+    ).toMatchObject({ status: "ACTIVE", loop_count: 1, current_loop: 1 });
+    expect(
+      (
+        await sql(
+          alice,
+          "select location,sound_enabled,(alert_at is not null) as scheduled from public.loop_timer_steps where loop_timer_id=$1 and step_number=1",
+          [topicId],
+        )
+      ).rows[0],
+    ).toMatchObject({ location: null, sound_enabled: false, scheduled: true });
+  });
+  it("removes one Loop row and renumbers the remaining rows", async () => {
+    const topicId = (
+      await sql(
+        alice,
+        "select public.create_loop_topic($1,'Editable rows','CLAN',null) as id",
+        [clanA],
+      )
+    ).rows[0].id;
+    for (const location of ["A", "B", "C"]) {
+      await sql(
+        alice,
+        "select public.add_loop_timer_step_with_location($1,$2,$3,'COUNTDOWN',60,null,false,false)",
+        [clanA, topicId, location],
+      );
+    }
+
+    await expect(
+      sql(member, "select public.remove_loop_timer_step($1,$2,2)", [
+        clanA,
+        topicId,
+      ]),
+    ).rejects.toMatchObject({ code: "42501" });
+    await sql(alice, "select public.remove_loop_timer_step($1,$2,2)", [
+      clanA,
+      topicId,
+    ]);
+    expect(
+      (
+        await sql(
+          alice,
+          "select array_agg(step_number order by step_number) as numbers,array_agg(location order by step_number) as locations from public.loop_timer_steps where loop_timer_id=$1",
+          [topicId],
+        )
+      ).rows[0],
+    ).toEqual({ numbers: [1, 2], locations: ["A", "C"] });
+    expect(
+      (
+        await sql(
+          alice,
+          "select loop_count,status::text from public.loop_timers where id=$1",
+          [topicId],
+        )
+      ).rows[0],
+    ).toEqual({ loop_count: 2, status: "ACTIVE" });
+
+    await sql(alice, "select public.remove_loop_timer_step($1,$2,2)", [
+      clanA,
+      topicId,
+    ]);
+    await sql(alice, "select public.remove_loop_timer_step($1,$2,1)", [
+      clanA,
+      topicId,
+    ]);
+    expect(
+      (
+        await sql(
+          alice,
+          "select loop_count,current_loop,status::text from public.loop_timers where id=$1",
+          [topicId],
+        )
+      ).rows[0],
+    ).toEqual({ loop_count: 0, current_loop: 0, status: "DRAFT" });
+    expect(
+      (
+        await sql(
+          alice,
+          "select count(*)::int as count from public.loop_timer_steps where loop_timer_id=$1",
+          [topicId],
+        )
+      ).rows[0].count,
+    ).toBe(0);
+  });
+
+  it("deletes a Loop topic and its dependent rows with permission", async () => {
+    const topicId = (
+      await sql(
+        alice,
+        "select public.create_loop_topic($1,'Delete me','CLAN',null) as id",
+        [clanA],
+      )
+    ).rows[0].id;
+    await sql(
+      alice,
+      "select public.add_loop_timer_step_with_location($1,$2,null,'COUNTDOWN',60,null,true,false)",
+      [clanA, topicId],
+    );
+    await sql(
+      alice,
+      "select public.add_loop_timer_step_with_location($1,$2,null,'COUNTDOWN',120,null,false,false)",
+      [clanA, topicId],
+    );
+    await admin.query(
+      "update public.loop_timer_steps set alert_at=now()-interval '1 second' where loop_timer_id=$1 and step_number=1",
+      [topicId],
+    );
+    await sql(alice, "select public.acknowledge_loop_timer_step($1,$2,1)", [
+      clanA,
+      topicId,
+    ]);
+
+    await expect(
+      sql(member, "select public.delete_loop_timer($1,$2)", [clanA, topicId]),
+    ).rejects.toMatchObject({ code: "42501" });
+    await sql(alice, "select public.delete_loop_timer($1,$2)", [
+      clanA,
+      topicId,
+    ]);
+    expect(
+      (
+        await admin.query(
+          "select (select count(*)::int from public.loop_timers where id=$1) as timers,(select count(*)::int from public.loop_timer_steps where loop_timer_id=$1) as steps,(select count(*)::int from public.loop_checkpoints where loop_timer_id=$1) as checkpoints",
+          [topicId],
+        )
+      ).rows[0],
+    ).toEqual({ timers: 0, steps: 0, checkpoints: 0 });
+  });
+
+  it("does not expose another Clan's Loops", async () => {
+    const loopId = (
+      await sql(
+        alice,
+        "select public.create_loop_timer($1,'Private','CLAN',null,1,'CLOCK',null,'22:45'::time,false) as id",
+        [clanA],
+      )
+    ).rows[0].id;
+    expect(
+      (
+        await sql(
+          bob,
+          "select count(*)::int as count from public.loop_timers where id=$1",
+          [loopId],
+        )
+      ).rows[0].count,
+    ).toBe(0);
+  });
+});
+
 describe("Asset image storage", () => {
   it("keeps images private and limits writes to Asset managers in the same Clan", async () => {
     const bucket = (
@@ -1827,5 +2229,321 @@ describe("Asset image storage", () => {
         [`${clanA}/${randomUUID()}.png`],
       ),
     ).rejects.toMatchObject({ code: "42501" });
+  });
+});
+
+describe("craft recipes are tenant-scoped planning data", () => {
+  const custom = () => ({
+    source: "CUSTOM",
+    assetId: null,
+    name: "Weapon A",
+    unit: "ชิ้น",
+    quantity: 1,
+    imagePath: null,
+  });
+  const linked = (assetId: string) => ({
+    source: "ASSET",
+    assetId,
+    name: "",
+    unit: "",
+    quantity: 20,
+    imagePath: null,
+  });
+  const save = (
+    user: string,
+    clan: string,
+    output: unknown,
+    materials: unknown[],
+    id: string | null = null,
+  ) =>
+    sql(
+      user,
+      "select public.save_craft_recipe($1,$2,'Weapon A',$3::jsonb,$4::jsonb) as id",
+      [clan, id, JSON.stringify(output), JSON.stringify(materials)],
+    );
+
+  it("creates, updates and deletes a mixed recipe without changing Inventory", async () => {
+    await deposit();
+    const before = await balance(mainA);
+    const id = (
+      await save(alice, clanA, custom(), [
+        linked(assetA),
+        { ...custom(), name: "Leather", quantity: 5 },
+      ])
+    ).rows[0].id;
+    const rows = await sql(
+      member,
+      "select * from public.craft_recipes where id=$1",
+      [id],
+    );
+    expect(rows.rowCount).toBe(1);
+    expect(rows.rows[0].materials).toHaveLength(2);
+    await save(
+      alice,
+      clanA,
+      { ...custom(), quantity: 2 },
+      [linked(assetA)],
+      id,
+    );
+    expect(
+      (
+        await sql(
+          member,
+          "select output from public.craft_recipes where id=$1",
+          [id],
+        )
+      ).rows[0].output.quantity,
+    ).toBe(2);
+    await sql(alice, "select public.delete_craft_recipe($1,$2)", [clanA, id]);
+    expect(
+      (await sql(alice, "select * from public.craft_recipes where id=$1", [id]))
+        .rowCount,
+    ).toBe(0);
+    expect(await balance(mainA)).toBe(before);
+  });
+  it("prevents Member editing and hides recipes from another Clan", async () => {
+    const id = (await save(alice, clanA, custom(), [linked(assetA)])).rows[0]
+      .id;
+    await expect(
+      save(member, clanA, custom(), [linked(assetA)]),
+    ).rejects.toMatchObject({ code: "42501" });
+    expect(
+      (await sql(bob, "select * from public.craft_recipes where id=$1", [id]))
+        .rowCount,
+    ).toBe(0);
+    await expect(
+      sql(member, "select public.delete_craft_recipe($1,$2)", [clanA, id]),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      save(bob, clanB, custom(), [linked(assetB)], id),
+    ).rejects.toMatchObject({ code: "P0002" });
+  });
+  it("rejects foreign Clan assets, empty lists and invalid quantities atomically", async () => {
+    await expect(
+      save(alice, clanA, custom(), [linked(assetB)]),
+    ).rejects.toMatchObject({ code: "22023" });
+    await expect(save(alice, clanA, custom(), [])).rejects.toMatchObject({
+      code: "22023",
+    });
+    await expect(
+      save(alice, clanA, custom(), [{ ...linked(assetA), quantity: 0 }]),
+    ).rejects.toMatchObject({ code: "22023" });
+    await expect(
+      save(alice, clanA, custom(), [{ ...linked(assetA), quantity: 0.00001 }]),
+    ).rejects.toMatchObject({ code: "22023" });
+    expect(
+      (
+        await sql(
+          alice,
+          "select * from public.craft_recipes where clan_id=$1",
+          [clanA],
+        )
+      ).rowCount,
+    ).toBe(0);
+  });
+  it("protects custom image storage by Clan and permission", async () => {
+    const imageName = `${clanA}/${randomUUID()}.png`;
+    await sql(
+      alice,
+      "insert into storage.objects(bucket_id,name) values('craft-images',$1)",
+      [imageName],
+    );
+    expect(
+      (
+        await sql(
+          member,
+          "select * from storage.objects where bucket_id='craft-images' and name=$1",
+          [imageName],
+        )
+      ).rowCount,
+    ).toBe(1);
+    expect(
+      (
+        await sql(
+          bob,
+          "select * from storage.objects where bucket_id='craft-images' and name=$1",
+          [imageName],
+        )
+      ).rowCount,
+    ).toBe(0);
+    await expect(
+      sql(
+        member,
+        "insert into storage.objects(bucket_id,name) values('craft-images',$1)",
+        [`${clanA}/${randomUUID()}.png`],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      save(alice, clanA, { ...custom(), imagePath: `${clanB}/bad.png` }, [
+        linked(assetA),
+      ]),
+    ).rejects.toMatchObject({ code: "22023" });
+  });
+});
+
+describe("Craft warehouse settings", () => {
+  const save = (user: string, warehouse: string) =>
+    sql(user, "select public.save_craft_settings($1,$2)", [clanA, warehouse]);
+  const read = (user: string) =>
+    sql(
+      user,
+      "select warehouse_id from public.craft_settings where clan_id=$1",
+      [clanA],
+    );
+  it("persists one shared warehouse choice without changing stock", async () => {
+    await deposit();
+    const before = await balance(mainA);
+    await save(alice, secondA);
+    expect((await read(member)).rows[0].warehouse_id).toBe(secondA);
+    await save(alice, mainA);
+    const result = await read(member);
+    expect(result.rowCount).toBe(1);
+    expect(result.rows[0].warehouse_id).toBe(mainA);
+    expect(await balance(mainA)).toBe(before);
+  });
+  it("blocks unauthorized updates and hides another Clan's settings", async () => {
+    await save(alice, mainA);
+    await expect(save(member, secondA)).rejects.toMatchObject({
+      code: "42501",
+    });
+    await expect(save(bob, mainA)).rejects.toMatchObject({ code: "42501" });
+    expect((await read(bob)).rowCount).toBe(0);
+  });
+  it("rejects foreign and inactive warehouses without replacing the saved choice", async () => {
+    await save(alice, mainA);
+    await expect(save(alice, mainB)).rejects.toMatchObject({ code: "22023" });
+    await admin.query(
+      "update public.warehouses set is_active=false where id=$1",
+      [secondA],
+    );
+    await expect(save(alice, secondA)).rejects.toMatchObject({ code: "22023" });
+    expect((await read(alice)).rows[0].warehouse_id).toBe(mainA);
+  });
+});
+
+describe("Clan social links", () => {
+  const save = (
+    user: string,
+    discord = "https://discord.gg/test",
+    line = "https://line.me/ti/g/test",
+    telegram = "https://t.me/test",
+  ) =>
+    sql(
+      user,
+      "select public.update_clan_details_with_social($1,'Updated Clan','GANG','Note','Rules',$2,$3,$4)",
+      [clanA, discord, line, telegram],
+    );
+  it("saves links together with clan content and supports clearing them", async () => {
+    await save(alice);
+    const result = await sql(
+      member,
+      "select name,note,discord_url,line_url,telegram_url from public.clans where id=$1",
+      [clanA],
+    );
+    expect(result.rows[0]).toMatchObject({
+      name: "Updated Clan",
+      note: "Note",
+      discord_url: "https://discord.gg/test",
+      line_url: "https://line.me/ti/g/test",
+      telegram_url: "https://t.me/test",
+    });
+    await save(alice, "", "", "");
+    expect(
+      (
+        await sql(
+          member,
+          "select discord_url,line_url,telegram_url from public.clans where id=$1",
+          [clanA],
+        )
+      ).rows[0],
+    ).toEqual({ discord_url: null, line_url: null, telegram_url: null });
+  });
+  it("requires clan.manage and rejects foreign Clan changes", async () => {
+    await expect(save(member)).rejects.toMatchObject({ code: "42501" });
+    await expect(save(bob)).rejects.toMatchObject({ code: "42501" });
+  });
+  it("rejects invalid URLs atomically without changing clan content", async () => {
+    for (const url of [
+      "javascript:alert(1)",
+      "https://evil.test/a",
+      "https://discord.gg.evil.test/a",
+      "https://discord.gg/a b",
+    ]) {
+      await expect(save(alice, url)).rejects.toMatchObject({ code: "23514" });
+    }
+    expect(
+      (
+        await sql(
+          alice,
+          "select name,discord_url from public.clans where id=$1",
+          [clanA],
+        )
+      ).rows[0],
+    ).toEqual({ name: "Clan A", discord_url: null });
+  });
+});
+
+describe("Facebook and TikTok Clan links", () => {
+  const save = (
+    user: string,
+    facebook = "https://www.facebook.com/clan",
+    tiktok = "https://www.tiktok.com/@clan",
+  ) =>
+    sql(
+      user,
+      "select public.update_clan_details_with_social_links($1,'Social Clan','GANG','Note','Rules','https://discord.gg/test','','',$2,$3)",
+      [clanA, facebook, tiktok],
+    );
+  it("saves both platforms and retains existing social content; empty fields remove links", async () => {
+    await save(alice);
+    expect(
+      (
+        await sql(
+          member,
+          "select facebook_url,tiktok_url,discord_url from public.clans where id=$1",
+          [clanA],
+        )
+      ).rows[0],
+    ).toEqual({
+      facebook_url: "https://www.facebook.com/clan",
+      tiktok_url: "https://www.tiktok.com/@clan",
+      discord_url: "https://discord.gg/test",
+    });
+    await save(alice, "", "");
+    expect(
+      (
+        await sql(
+          member,
+          "select facebook_url,tiktok_url from public.clans where id=$1",
+          [clanA],
+        )
+      ).rows[0],
+    ).toEqual({ facebook_url: null, tiktok_url: null });
+  });
+  it("prevents unauthorized or foreign Clan writes", async () => {
+    await expect(save(member)).rejects.toMatchObject({ code: "42501" });
+    await expect(save(bob)).rejects.toMatchObject({ code: "42501" });
+  });
+  it("rolls back all details when either social URL is invalid", async () => {
+    await expect(
+      save(alice, "https://facebook.com.evil.test/clan"),
+    ).rejects.toMatchObject({ code: "23514" });
+    await expect(
+      save(alice, "https://www.facebook.com/clan", "javascript:alert(1)"),
+    ).rejects.toMatchObject({ code: "23514" });
+    expect(
+      (
+        await sql(
+          alice,
+          "select name,discord_url,facebook_url,tiktok_url from public.clans where id=$1",
+          [clanA],
+        )
+      ).rows[0],
+    ).toEqual({
+      name: "Clan A",
+      discord_url: null,
+      facebook_url: null,
+      tiktok_url: null,
+    });
   });
 });
