@@ -11,6 +11,8 @@ const buttonVariants = cva(
         outline: "border border-input bg-background hover:bg-muted",
         warning: "bg-amber-500 text-white hover:bg-amber-600",
         destructive: "bg-red-600 text-white hover:bg-red-700",
+        "destructive-outline":
+          "border border-red-300 bg-transparent text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/30",
       },
       size: { default: "h-10 px-4 py-2", sm: "h-9 px-3" },
     },

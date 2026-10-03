@@ -73,7 +73,7 @@ export default async function ClansPage({
               id={htmlId("clans_clans_page_clan_gang")}
               className="mt-2 text-3xl font-bold tracking-tight"
             >
-              Clan และ Gang
+              Clan/Gang
             </h1>
             <p
               id={htmlId("clans_clans_page_p_2")}
@@ -127,20 +127,12 @@ export default async function ClansPage({
                 <article
                   id={htmlId("clans_clans_page_article", htmlRowIndex1)}
                   key={membership.clan.id}
-                  className={`rounded-xl border p-5 ${
-                    isClan
-                      ? "border-sky-200 bg-sky-50 dark:border-sky-900 dark:bg-sky-950/40"
-                      : "border-violet-200 bg-violet-50 dark:border-violet-900 dark:bg-violet-950/40"
-                  }`}
+                  className="clan-card brand-panel border-input rounded-xl border p-5"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
                       <span
-                        className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${
-                          isClan
-                            ? "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
-                            : "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
-                        }`}
+                        className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-xl"
                         aria-hidden="true"
                       >
                         <ClanIcon className="size-5" strokeWidth={2.25} />
@@ -161,13 +153,7 @@ export default async function ClansPage({
                         </Link>
                       </h2>
                     </div>
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs font-medium ${
-                        isClan
-                          ? "bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
-                          : "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
-                      }`}
-                    >
+                    <span className="bg-primary/10 text-primary rounded-full px-2 py-1 text-xs font-medium">
                       {isClan ? "Clan" : "Gang"}
                     </span>
                   </div>
@@ -190,7 +176,7 @@ export default async function ClansPage({
                       id={htmlId("clans_clans_page_button_2", htmlRowIndex1)}
                       asChild
                       size="sm"
-                      className="w-14"
+                      className="min-w-14"
                     >
                       <Link
                         id={htmlId("clans_clans_page_link", htmlRowIndex1)}
@@ -208,8 +194,8 @@ export default async function ClansPage({
                           )}
                           asChild
                           size="sm"
-                          variant="warning"
-                          className="w-14"
+                          variant="outline"
+                          className="min-w-14"
                         >
                           <Link
                             id={htmlId(

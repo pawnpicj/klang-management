@@ -35,7 +35,7 @@ export function DashboardNavigation({
     <nav
       id={htmlId("clan_dashboard_navigation_clan_gang", htmlIdPrefix)}
       aria-label="เมนู Clan/Gang"
-      className="mt-7 flex flex-wrap gap-3"
+      className="brand-navigation mt-7 flex flex-wrap gap-3"
     >
       {items
         .filter((item) => item.path !== "members" || canManageMembers)

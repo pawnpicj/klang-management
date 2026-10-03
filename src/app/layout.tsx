@@ -1,3 +1,4 @@
+import { appearanceInitScript } from "@/lib/appearance";
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
@@ -18,7 +19,7 @@ export default function RootLayout({
         <script
           id="theme_init"
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('klang-theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}})();`,
+            __html: appearanceInitScript,
           }}
         />
       </head>

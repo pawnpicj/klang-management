@@ -11,7 +11,7 @@ export function AppHeader({ activeClan }: { activeClan?: string }) {
   return (
     <header
       id={htmlId("clan_app_header_header", htmlIdPrefix)}
-      className="border-input bg-background border-b"
+      className="brand-header border-input bg-background border-b"
     >
       <div className="mx-auto flex min-h-16 w-full max-w-5xl items-center justify-between gap-4 px-5 py-3 sm:px-6">
         <Link
@@ -30,7 +30,9 @@ export function AppHeader({ activeClan }: { activeClan?: string }) {
             className="size-10 shrink-0 object-contain"
           />
           <span className="min-w-0">
-            <span className="block truncate font-bold">KLANG Management</span>
+            <span className="brand-wordmark block truncate font-bold">
+              KLANG Management
+            </span>
             {activeClan && (
               <span className="text-muted-foreground block truncate text-xs">
                 {activeClan}

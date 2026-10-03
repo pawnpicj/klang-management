@@ -1370,6 +1370,15 @@ export type Database = {
           social_links: Json
         }[]
       }
+      get_public_member_preview_with_deliveries: {
+        Args: { p_clan_slug: string }
+        Returns: {
+          character_name: string
+          equipment: Json
+          social_links: Json
+          delivery_summary: Json
+        }[]
+      }
       get_public_member_preview_settings: {
         Args: { p_clan_slug: string }
         Returns: {

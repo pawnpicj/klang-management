@@ -58,4 +58,46 @@ describe("member preview visibility", () => {
     expect(html).not.toContain("preview_member_name_0");
     expect((html.match(/scope="col"/g) || []).length).toBe(2);
   });
+  it("shows delivery quantities and complete status only in the selected column", () => {
+    const members = [
+      {
+        character_name: "Pending",
+        social_links: {},
+        equipment: [],
+        delivery_summary: {
+          complete: false,
+          items: [{ name: "Delivery Coin", unit: "coin", quantity: 300000 }],
+        },
+      },
+      {
+        character_name: "Paid",
+        social_links: {},
+        equipment: [],
+        delivery_summary: { complete: true, items: [] },
+      },
+    ];
+    const render = (columns: string[]) =>
+      renderToStaticMarkup(
+        createElement(PublicMemberPreview, {
+          selected: { name: "Clan" },
+          members,
+          failed: false,
+          columns,
+        }),
+      );
+    const html = render(["MEMBER", "DELIVERIES"]);
+    expect(html).toContain("ยอดค้างส่ง");
+    expect(html).toContain("Delivery Coin");
+    expect(html).toContain("300,000");
+    expect(html).toContain("ครบแล้ว");
+    expect(render(["MEMBER"])).not.toContain("Delivery Coin");
+    expect(
+      memberPreviewColumnsSchema.safeParse([
+        "MEMBER",
+        "SOCIAL",
+        "EQUIPMENT",
+        "DELIVERIES",
+      ]).success,
+    ).toBe(true);
+  });
 });

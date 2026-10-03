@@ -9,7 +9,10 @@ import {
   readMemberSocialLinks,
 } from "@/features/clans/member-profile";
 import { htmlId } from "@/lib/html-id";
-import { memberPreviewColumns } from "@/features/clans/member-preview";
+import {
+  memberPreviewColumns,
+  publicDeliverySummarySchema,
+} from "@/features/clans/member-preview";
 import type { Json } from "@/types/database";
 export function PublicMemberPreview({
   selected,
@@ -18,13 +21,21 @@ export function PublicMemberPreview({
   columns,
 }: {
   selected?: { name: string };
-  members: { character_name: string; social_links: Json; equipment: Json }[];
+  members: {
+    character_name: string;
+    social_links: Json;
+    equipment: Json;
+    delivery_summary?: Json;
+  }[];
   failed: boolean;
   columns: string[];
 }) {
   return (
     <>
-      <header id="preview_members_header" className="border-input border-b">
+      <header
+        id="preview_members_header"
+        className="brand-header border-input border-b"
+      >
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-4 sm:px-6">
           <Link
             id="preview_members_home"
@@ -38,7 +49,10 @@ export function PublicMemberPreview({
               height={40}
               alt=""
             />
-            <span id="preview_members_brand" className="font-bold">
+            <span
+              id="preview_members_brand"
+              className="brand-wordmark font-bold"
+            >
               KLANG Management
             </span>
           </Link>
@@ -115,6 +129,9 @@ export function PublicMemberPreview({
                         .array()
                         .safeParse(member.equipment);
                       const equipment = parsed.success ? parsed.data : [];
+                      const delivery = publicDeliverySummarySchema.safeParse(
+                        member.delivery_summary,
+                      );
                       return (
                         <tr
                           id={htmlId("preview_member_row", index)}
@@ -200,6 +217,59 @@ export function PublicMemberPreview({
                                     </li>
                                   ))}
                                 </ul>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </td>
+                          )}
+                          {columns.includes("DELIVERIES") && (
+                            <td
+                              id={htmlId("preview_member_deliveries", index)}
+                              className="px-5 py-4"
+                            >
+                              {delivery.success ? (
+                                delivery.data.complete ? (
+                                  <span
+                                    id={htmlId(
+                                      "preview_member_delivery_complete",
+                                      index,
+                                    )}
+                                    className="text-emerald-700 dark:text-emerald-400"
+                                  >
+                                    ครบแล้ว
+                                  </span>
+                                ) : (
+                                  <ul
+                                    id={htmlId(
+                                      "preview_member_delivery_items",
+                                      index,
+                                    )}
+                                    className="space-y-2"
+                                  >
+                                    {delivery.data.items.map(
+                                      (item, itemIndex) => (
+                                        <li
+                                          id={htmlId(
+                                            "preview_member_delivery_item",
+                                            index,
+                                            itemIndex,
+                                          )}
+                                          key={itemIndex}
+                                          className="flex flex-wrap gap-x-2"
+                                        >
+                                          <span>{item.name}</span>
+                                          <span className="text-muted-foreground">
+                                            {item.quantity.toLocaleString(
+                                              "th-TH",
+                                              { maximumFractionDigits: 4 },
+                                            )}{" "}
+                                            {item.unit}
+                                          </span>
+                                        </li>
+                                      ),
+                                    )}
+                                  </ul>
+                                )
                               ) : (
                                 <span className="text-muted-foreground">—</span>
                               )}

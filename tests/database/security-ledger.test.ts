@@ -2947,3 +2947,96 @@ describe("Public member preview columns", () => {
     ).toBe(false);
   });
 });
+
+describe("Public delivery backlog preview", () => {
+  async function setup() {
+    const {
+      rows: [ctx],
+    } = await admin.query(
+      `select slug,(now() at time zone 'Asia/Bangkok')::date::text as today,((now() at time zone 'Asia/Bangkok')::date-2)::text as start from public.clans where id=$1`,
+      [clanA],
+    );
+    await admin.query(
+      "update public.clans set delivery_tracking_started_on=$2 where id=$1",
+      [clanA, ctx.start],
+    );
+    const {
+      rows: [m],
+    } = await admin.query(
+      "update public.clan_members set delivery_started_on=$3,character_name='Backlog Test' where clan_id=$1 and user_id=$2 returning id",
+      [clanA, member, ctx.start],
+    );
+    await admin.query(
+      "update public.assets set required_quantity=100,created_at=$2::date where id=$1",
+      [assetA, ctx.start],
+    );
+    await sql(
+      alice,
+      "select public.set_member_preview_settings($1,true,$2::text[])",
+      [clanA, ["MEMBER", "DELIVERIES"]],
+    );
+    return { ...ctx, memberId: m.id };
+  }
+  async function read(slug: string) {
+    return (
+      await sql(
+        null,
+        "select * from public.get_public_member_preview_with_deliveries($1)",
+        [slug],
+        "anon",
+      )
+    ).rows;
+  }
+  it("clears accrued backlog with today's delivery and recomputes edits and deletions", async () => {
+    const ctx = await setup();
+    const summary = async () =>
+      (await read(ctx.slug)).find((r) => r.character_name === "Backlog Test")
+        .delivery_summary;
+    expect((await summary()).items[0].quantity).toBe(300);
+    const {
+      rows: [record],
+    } = await admin.query(
+      "insert into public.member_deliveries(clan_id,member_id,asset_id,delivery_date,quantity,recorded_by,warehouse_id) values($1,$2,$3,$4,250,$5,$6) returning id",
+      [clanA, ctx.memberId, assetA, ctx.today, alice, mainA],
+    );
+    expect((await summary()).items[0].quantity).toBe(50);
+    await admin.query(
+      "update public.member_deliveries set quantity=300 where id=$1",
+      [record.id],
+    );
+    expect(await summary()).toEqual({ complete: true, items: [] });
+    await admin.query("delete from public.member_deliveries where id=$1", [
+      record.id,
+    ]);
+    expect((await summary()).items[0].quantity).toBe(300);
+    await admin.query(
+      "insert into public.member_deliveries(clan_id,member_id,asset_id,delivery_date,quantity,recorded_by,warehouse_id) values($1,$2,$3,$4,500,$5,$6)",
+      [clanA, ctx.memberId, assetA, ctx.start, alice, mainA],
+    );
+    expect((await summary()).items[0].quantity).toBe(200);
+  });
+  it("hides totals unless selected and never returns members of a closed clan", async () => {
+    const ctx = await setup();
+    await sql(
+      alice,
+      "select public.set_member_preview_settings($1,true,$2::text[])",
+      [clanA, ["MEMBER"]],
+    );
+    for (const row of await read(ctx.slug))
+      expect(row.delivery_summary).toBeNull();
+    await sql(
+      alice,
+      "select public.set_member_preview_settings($1,false,$2::text[])",
+      [clanA, ["MEMBER", "DELIVERIES"]],
+    );
+    expect(await read(ctx.slug)).toEqual([]);
+    await expect(
+      sql(
+        null,
+        "select private.public_delivery_summary($1,$2)",
+        [clanA, ctx.memberId],
+        "anon",
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+  });
+});

@@ -43,7 +43,8 @@ export function MemberPreviewSettings({
         className="text-muted-foreground mt-2 text-sm leading-6"
       >
         เมื่อเปิด ทุกคนที่มีลิงก์สามารถดูชื่อสมาชิก Social Media
-        และชื่อรายการอาวุธ/ยา/ระเบิด/อื่นๆ ได้โดยไม่ต้องล็อกอิน
+        ชื่อรายการอาวุธ/ยา/ระเบิด/อื่นๆ
+        และยอดค้างส่งตามคอลัมน์ที่เลือกได้โดยไม่ต้องล็อกอิน
       </p>
       <form
         id="member_preview_settings_form"

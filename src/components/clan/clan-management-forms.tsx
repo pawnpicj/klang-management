@@ -27,7 +27,7 @@ function PendingButton({
 }: {
   children: React.ReactNode;
   pendingText: string;
-  variant?: "default" | "outline" | "warning" | "destructive";
+  variant?: React.ComponentProps<typeof Button>["variant"];
   size?: "default" | "sm";
   className?: string;
   title?: string;
@@ -74,9 +74,9 @@ export function ArchiveClanButton({ clanSlug }: { clanSlug: string }) {
         value={clanSlug}
       />
       <PendingButton
-        variant="destructive"
+        variant="destructive-outline"
         size="sm"
-        className="w-14"
+        className="min-w-14"
         pendingText="กำลังลบ…"
       >
         ลบ

@@ -18,7 +18,7 @@ export default async function ClanMemberPreviewPage({
   const selected = settings?.[0];
   const { data: members, error: memberError } =
     selected && supabase
-      ? await supabase.rpc("get_public_member_preview", {
+      ? await supabase.rpc("get_public_member_preview_with_deliveries", {
           p_clan_slug: clanSlug,
         })
       : { data: [], error: null };
