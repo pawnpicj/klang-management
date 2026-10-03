@@ -99,6 +99,7 @@ function DeliveryForm({
   close: () => void;
 }) {
   const htmlIdPrefix = useHtmlId();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [state, action] = useActionState(
     recordDeliveryAction,
@@ -107,6 +108,7 @@ function DeliveryForm({
   return (
     <form
       id={htmlId("clan_delivery_form_form", htmlIdPrefix)}
+      ref={formRef}
       action={action}
       className="space-y-4"
     >
@@ -139,6 +141,32 @@ function DeliveryForm({
       </label>
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium">Assets ที่ส่ง</legend>
+        {member.missingItems.length > 0 && (
+          <Button
+            id={htmlId("clan_delivery_form_fill_missing", htmlIdPrefix)}
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const dateInput =
+                formRef.current?.querySelector<HTMLInputElement>(
+                  'input[name="deliveryDate"]',
+                );
+              if (dateInput) dateInput.value = today;
+              for (const asset of assets) {
+                const input = formRef.current?.querySelector<HTMLInputElement>(
+                  `input[data-delivery-asset-id="${asset.id}"]`,
+                );
+                const quantity = member.missingItems.find(
+                  (item) => item.id === asset.id,
+                )?.quantity;
+                if (input) input.value = quantity ? String(quantity) : "";
+              }
+            }}
+          >
+            ใส่ยอดค้างทั้งหมด
+          </Button>
+        )}
         {assets.map((asset, htmlRowIndex1) => (
           <label
             id={htmlId(
@@ -177,6 +205,7 @@ function DeliveryForm({
                   htmlIdPrefix,
                   htmlRowIndex1,
                 )}
+                data-delivery-asset-id={asset.id}
                 name="quantity"
                 type="number"
                 min="0.0001"

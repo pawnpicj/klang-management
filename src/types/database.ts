@@ -361,6 +361,8 @@ export type Database = {
           id: string
           line_url: string | null
           logo_url: string | null
+          members_preview_columns: string[]
+          members_preview_public: boolean
           name: string
           note: string | null
           rules: string | null
@@ -382,6 +384,8 @@ export type Database = {
           id?: string
           line_url?: string | null
           logo_url?: string | null
+          members_preview_columns?: string[]
+          members_preview_public?: boolean
           name: string
           note?: string | null
           rules?: string | null
@@ -403,6 +407,8 @@ export type Database = {
           id?: string
           line_url?: string | null
           logo_url?: string | null
+          members_preview_columns?: string[]
+          members_preview_public?: boolean
           name?: string
           note?: string | null
           rules?: string | null
@@ -1356,12 +1362,35 @@ export type Database = {
         Args: { p_clan_id: string; p_delivery_id: string }
         Returns: string
       }
+      get_public_member_preview: {
+        Args: { p_clan_slug: string }
+        Returns: {
+          character_name: string
+          equipment: Json
+          social_links: Json
+        }[]
+      }
+      get_public_member_preview_settings: {
+        Args: { p_clan_slug: string }
+        Returns: {
+          columns: string[]
+          name: string
+          slug: string
+        }[]
+      }
       has_clan_permission: {
         Args: { p_clan_id: string; p_permission_code: string }
         Returns: boolean
       }
       is_clan_leader: { Args: { p_clan_id: string }; Returns: boolean }
       is_clan_member: { Args: { p_clan_id: string }; Returns: boolean }
+      list_public_member_clans: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          name: string
+          slug: string
+        }[]
+      }
       post_transaction: { Args: { p_transaction_id: string }; Returns: string }
       record_member_deliveries: {
         Args: {
@@ -1427,6 +1456,14 @@ export type Database = {
       set_default_warehouse: {
         Args: { p_clan_id: string; p_warehouse_id: string }
         Returns: string
+      }
+      set_member_preview_public: {
+        Args: { p_clan_id: string; p_enabled: boolean }
+        Returns: undefined
+      }
+      set_member_preview_settings: {
+        Args: { p_clan_id: string; p_columns: string[]; p_enabled: boolean }
+        Returns: undefined
       }
       transfer_inventory: {
         Args: {

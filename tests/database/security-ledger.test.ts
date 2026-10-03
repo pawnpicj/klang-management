@@ -2665,3 +2665,285 @@ describe("Member social media and equipment", () => {
     ).toEqual({ character_name: initial, equipment: [] });
   });
 });
+
+describe("Public member preview", () => {
+  it("keeps every Clan private by default and preserves anonymous table isolation", async () => {
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.list_public_member_clans()",
+          [],
+          "anon",
+        )
+      ).rows,
+    ).toEqual([]);
+    const slug = (
+      await admin.query("select slug from public.clans where id=$1", [clanA])
+    ).rows[0].slug;
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.get_public_member_preview($1)",
+          [slug],
+          "anon",
+        )
+      ).rows,
+    ).toEqual([]);
+    const raw = await sql(
+      null,
+      "select id from public.clan_members",
+      [],
+      "anon",
+    ).catch((error) => error);
+    if (raw.rows) expect(raw.rows).toEqual([]);
+    else expect(raw.code).toBe("42501");
+  });
+  it("only lets clan managers publish and immediately revokes previews on disable or archive", async () => {
+    await expect(
+      sql(member, "select public.set_member_preview_public($1,true)", [clanA]),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(bob, "select public.set_member_preview_public($1,true)", [clanA]),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(
+        null,
+        "select public.set_member_preview_public($1,true)",
+        [clanA],
+        "anon",
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    const slug = (
+      await admin.query("select slug from public.clans where id=$1", [clanA])
+    ).rows[0].slug;
+    await sql(alice, "select public.set_member_preview_public($1,true)", [
+      clanA,
+    ]);
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.list_public_member_clans()",
+          [],
+          "anon",
+        )
+      ).rows,
+    ).toEqual([{ slug, name: "Clan A" }]);
+    await sql(alice, "select public.set_member_preview_public($1,false)", [
+      clanA,
+    ]);
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.get_public_member_preview($1)",
+          [slug],
+          "anon",
+        )
+      ).rows,
+    ).toEqual([]);
+    await sql(alice, "select public.set_member_preview_public($1,true)", [
+      clanA,
+    ]);
+    await admin.query("update public.clans set status='ARCHIVED' where id=$1", [
+      clanA,
+    ]);
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.list_public_member_clans()",
+          [],
+          "anon",
+        )
+      ).rows,
+    ).toEqual([]);
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.get_public_member_preview($1)",
+          [slug],
+          "anon",
+        )
+      ).rows,
+    ).toEqual([]);
+  });
+  it("exposes only approved fields and active members in published clans", async () => {
+    const slug = (
+      await admin.query("select slug from public.clans where id=$1", [clanA])
+    ).rows[0].slug;
+    const foreignSlug = (
+      await admin.query("select slug from public.clans where id=$1", [clanB])
+    ).rows[0].slug;
+    await admin.query(
+      `update public.clan_members set social_links='{"instagramUrl":"https://www.instagram.com/member/"}'::jsonb,equipment='[{"category":"OTHER","name":"Radio","quantity":3}]'::jsonb where clan_id=$1 and user_id=$2`,
+      [clanA, member],
+    );
+    await sql(alice, "select public.set_member_preview_public($1,true)", [
+      clanA,
+    ]);
+    const result = await sql(
+      null,
+      "select * from public.get_public_member_preview($1)",
+      [slug],
+      "anon",
+    );
+    expect(result.rows.length).toBe(4);
+    for (const row of result.rows)
+      expect(Object.keys(row).sort()).toEqual([
+        "character_name",
+        "equipment",
+        "social_links",
+      ]);
+    expect(result.rows.find((row) => row.equipment.length)).toMatchObject({
+      equipment: [{ category: "OTHER", name: "Radio" }],
+      social_links: { instagramUrl: "https://www.instagram.com/member/" },
+    });
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.get_public_member_preview($1)",
+          [foreignSlug],
+          "anon",
+        )
+      ).rows,
+    ).toEqual([]);
+    await sql(
+      alice,
+      "select public.remove_clan_member($1,(select id from public.clan_members where clan_id=$1 and user_id=$2))",
+      [clanA, member],
+    );
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.get_public_member_preview($1)",
+          [slug],
+          "anon",
+        )
+      ).rows.length,
+    ).toBe(3);
+  });
+});
+
+describe("Public member preview columns", () => {
+  async function slug() {
+    return (
+      await admin.query("select slug from public.clans where id=$1", [clanA])
+    ).rows[0].slug;
+  }
+  it("only reveals selected column data through anonymous RPC", async () => {
+    await admin.query(
+      `update public.clan_members set social_links='{"kickUrl":"https://kick.com/member"}',equipment='[{"category":"OTHER","name":"Radio","quantity":3}]' where clan_id=$1 and user_id=$2`,
+      [clanA, member],
+    );
+    await sql(
+      alice,
+      "select public.set_member_preview_settings($1,true,$2::text[])",
+      [clanA, ["MEMBER"]],
+    );
+    const clanSlug = await slug();
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.get_public_member_preview_settings($1)",
+          [clanSlug],
+          "anon",
+        )
+      ).rows[0],
+    ).toEqual({ slug: clanSlug, name: "Clan A", columns: ["MEMBER"] });
+    let result = await sql(
+      null,
+      "select * from public.get_public_member_preview($1)",
+      [clanSlug],
+      "anon",
+    );
+    for (const row of result.rows) {
+      expect(row.character_name).not.toBe("");
+      expect(row.social_links).toEqual({});
+      expect(row.equipment).toEqual([]);
+    }
+    await sql(
+      alice,
+      "select public.set_member_preview_settings($1,true,$2::text[])",
+      [clanA, ["SOCIAL", "EQUIPMENT"]],
+    );
+    result = await sql(
+      null,
+      "select * from public.get_public_member_preview($1)",
+      [clanSlug],
+      "anon",
+    );
+    for (const row of result.rows) expect(row.character_name).toBe("");
+    expect(result.rows.find((row) => row.equipment.length)).toEqual({
+      character_name: "",
+      social_links: { kickUrl: "https://kick.com/member" },
+      equipment: [{ category: "OTHER", name: "Radio" }],
+    });
+    await sql(
+      alice,
+      "select public.set_member_preview_settings($1,false,$2::text[])",
+      [clanA, ["MEMBER"]],
+    );
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.get_public_member_preview_settings($1)",
+          [clanSlug],
+          "anon",
+        )
+      ).rows,
+    ).toEqual([]);
+    expect(
+      (
+        await sql(
+          null,
+          "select * from public.get_public_member_preview($1)",
+          [clanSlug],
+          "anon",
+        )
+      ).rows,
+    ).toEqual([]);
+  });
+  it("rejects invalid columns atomically and enforces manager permissions", async () => {
+    for (const columns of [[], ["ROLE"], ["MEMBER", "MEMBER"], [null]]) {
+      await expect(
+        sql(
+          alice,
+          "select public.set_member_preview_settings($1,true,$2::text[])",
+          [clanA, columns],
+        ),
+      ).rejects.toMatchObject({ code: "22023" });
+    }
+    for (const user of [member, bob])
+      await expect(
+        sql(
+          user,
+          "select public.set_member_preview_settings($1,true,$2::text[])",
+          [clanA, ["MEMBER"]],
+        ),
+      ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      sql(
+        null,
+        "select public.set_member_preview_settings($1,true,$2::text[])",
+        [clanA, ["MEMBER"]],
+        "anon",
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    expect(
+      (
+        await admin.query(
+          "select members_preview_public from public.clans where id=$1",
+          [clanA],
+        )
+      ).rows[0].members_preview_public,
+    ).toBe(false);
+  });
+});

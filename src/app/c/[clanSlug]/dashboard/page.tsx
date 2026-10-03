@@ -1,6 +1,6 @@
+import { ShareMemberPreview } from "@/components/clan/share-member-preview";
+import { MembersTable } from "@/components/clan/members-table";
 import {
-  equipmentCategories,
-  memberSocialPlatforms,
   readMemberEquipment,
   readMemberSocialLinks,
 } from "@/features/clans/member-profile";
@@ -40,7 +40,7 @@ export default async function ClanDashboardPage({
   const { data: clan } = await supabase
     .from("clans")
     .select(
-      "id,name,slug,type,status,game_name,server_name,note,rules,discord_url,line_url,telegram_url,facebook_url,tiktok_url,delivery_tracking_started_on",
+      "id,name,slug,type,status,game_name,server_name,note,rules,discord_url,line_url,telegram_url,facebook_url,tiktok_url,members_preview_public,delivery_tracking_started_on",
     )
     .eq("slug", clanSlug)
     .maybeSingle();
@@ -92,7 +92,7 @@ export default async function ClanDashboardPage({
       >
         <div className="relative pt-12 sm:pt-0">
           <div className="w-full">
-            <div className="flex flex-wrap items-center gap-3 sm:pr-48">
+            <div className="flex flex-wrap items-center gap-3 sm:pr-60">
               <h1
                 id="clan_game_name"
                 className="text-3xl font-bold tracking-tight"
@@ -176,20 +176,30 @@ export default async function ClanDashboardPage({
               </p>
             )}
           </div>
-          <Button
-            id={htmlId("dashboard_clan_dashboard_page_button_2")}
-            asChild
-            variant="outline"
-            size="sm"
-            className="absolute top-0 right-0 h-8 px-3 text-xs"
+          <div
+            id="dashboard_clan_actions"
+            className="absolute top-0 right-0 flex items-center gap-2"
           >
-            <Link
-              id={htmlId("dashboard_clan_dashboard_page_clans")}
-              href="/clans"
+            <Button
+              id={htmlId("dashboard_clan_dashboard_page_button_2")}
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-xs"
             >
-              เปลี่ยน Clan/Gang
-            </Link>
-          </Button>
+              <Link
+                id={htmlId("dashboard_clan_dashboard_page_clans")}
+                href="/clans"
+              >
+                เปลี่ยน Clan/Gang
+              </Link>
+            </Button>
+            <ShareMemberPreview
+              clanSlug={clan.slug}
+              clanName={clan.name}
+              enabled={clan.members_preview_public}
+            />
+          </div>
         </div>
 
         {query.memberUpdated === "1" && (
@@ -264,179 +274,39 @@ export default async function ClanDashboardPage({
               {members?.length ?? 0} คน
             </span>
           </div>
-          <div id="dashboard_members_scroll" className="overflow-x-auto">
-            <table
-              id="dashboard_members_table"
-              className="w-full min-w-[650px] text-left text-sm"
-            >
-              <thead
-                id="dashboard_members_header"
-                className="bg-muted/50 text-muted-foreground"
-              >
-                <tr id="dashboard_members_header_row">
-                  {[
-                    "สมาชิก",
-                    "Social Media",
-                    "อาวุธ / ยา / ระเบิด / อื่นๆ",
-                    "Role",
-                  ].map((label, index) => (
-                    <th
-                      id={htmlId("dashboard_members_column", index)}
-                      key={label}
-                      scope="col"
-                      className="px-5 py-3 font-semibold"
-                    >
-                      {label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody
-                id="dashboard_members_body"
-                className="divide-input divide-y"
-              >
-                {members?.length ? (
-                  members.map((member) => {
-                    const equipment = readMemberEquipment(member.equipment);
-                    const social = readMemberSocialLinks(member.social_links);
-                    return (
-                      <tr
-                        id={htmlId("member_row", member.id)}
+          <MembersTable
+            members={members ?? []}
+            editControls={
+              canManageMembers
+                ? Object.fromEntries(
+                    (members ?? []).map((member) => [
+                      member.id,
+                      <DashboardMemberEditor
                         key={member.id}
-                        className="hover:bg-muted/20"
-                      >
-                        <td
-                          id={htmlId("member_name", member.id)}
-                          className="px-5 py-4"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span
-                              id={htmlId("member_character_name", member.id)}
-                              className="font-medium"
-                            >
-                              {member.character_name}
-                            </span>
-                            {canManageMembers && (
-                              <DashboardMemberEditor
-                                clanSlug={clan.slug}
-                                member={{
-                                  id: member.id,
-                                  characterName: member.character_name,
-                                  roleId: member.role_id,
-                                  deliveryStartedOn:
-                                    member.delivery_started_on ??
-                                    member.joined_at?.slice(0, 10) ??
-                                    today,
-                                  socialLinks: social,
-                                  equipment,
-                                }}
-                                roles={roles ?? []}
-                                trackingStartedOn={
-                                  clan.delivery_tracking_started_on
-                                }
-                                today={today}
-                                assets={memberAssets ?? []}
-                              />
-                            )}
-                          </div>
-                        </td>
-                        <td
-                          id={htmlId("member_social", member.id)}
-                          className="px-5 py-4"
-                        >
-                          <div className="flex flex-wrap gap-1">
-                            {memberSocialPlatforms.map((platform) => {
-                              const url = social[platform.key];
-                              if (!url) return null;
-                              return (
-                                <a
-                                  id={htmlId(
-                                    "member_social_link",
-                                    member.id,
-                                    platform.key,
-                                  )}
-                                  key={platform.key}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  title={platform.label}
-                                  aria-label={`${platform.label} ของ ${member.character_name}`}
-                                  className="focus-visible:ring-ring flex size-7 items-center justify-center rounded-full outline-none hover:opacity-80 focus-visible:ring-2 [&>svg]:size-5"
-                                >
-                                  <SocialLogo platform={platform.key} />
-                                </a>
-                              );
-                            })}
-                            {!Object.values(social).some(Boolean) && (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </div>
-                        </td>
-                        <td
-                          id={htmlId("member_equipment", member.id)}
-                          className="px-5 py-4"
-                        >
-                          {equipment.length ? (
-                            <ul
-                              id={htmlId("member_equipment_list", member.id)}
-                              className="space-y-2"
-                            >
-                              {equipment.map((item, index) => (
-                                <li
-                                  id={htmlId(
-                                    "member_equipment_item",
-                                    member.id,
-                                    index,
-                                  )}
-                                  key={index}
-                                  className="flex items-start gap-2"
-                                >
-                                  <span className="bg-muted text-muted-foreground shrink-0 rounded px-1.5 py-0.5 text-xs">
-                                    {
-                                      equipmentCategories.find(
-                                        (category) =>
-                                          category.value === item.category,
-                                      )?.label
-                                    }
-                                  </span>
-                                  <span className="break-words">
-                                    {item.name}
-                                  </span>
-                                  <span className="text-muted-foreground shrink-0">
-                                    ×{item.quantity.toLocaleString("th-TH")}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-                        <td
-                          id={htmlId("member_role", member.id)}
-                          className="px-5 py-4"
-                        >
-                          <span className="bg-muted rounded-full px-2.5 py-1 text-xs">
-                            {member.role.name}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr id="dashboard_members_empty_row">
-                    <td
-                      id="dashboard_members_empty"
-                      colSpan={4}
-                      className="text-muted-foreground px-5 py-6 text-center"
-                    >
-                      ยังไม่มีสมาชิก
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                        clanSlug={clan.slug}
+                        member={{
+                          id: member.id,
+                          characterName: member.character_name,
+                          roleId: member.role_id,
+                          deliveryStartedOn:
+                            member.delivery_started_on ??
+                            member.joined_at?.slice(0, 10) ??
+                            today,
+                          socialLinks: readMemberSocialLinks(
+                            member.social_links,
+                          ),
+                          equipment: readMemberEquipment(member.equipment),
+                        }}
+                        roles={roles ?? []}
+                        trackingStartedOn={clan.delivery_tracking_started_on}
+                        today={today}
+                        assets={memberAssets ?? []}
+                      />,
+                    ]),
+                  )
+                : undefined
+            }
+          />
         </section>
       </main>
     </>

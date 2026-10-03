@@ -1,3 +1,4 @@
+import { MemberPreviewSettings } from "@/components/clan/member-preview-settings";
 import { ActionNotice } from "@/components/ui/action-notice";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -28,7 +29,7 @@ export default async function ClanSettingsPage({
   const { data: memberships, error: membershipError } = await supabase
     .from("clan_members")
     .select(
-      "clan:clans!clan_members_clan_id_fkey(id,name,slug,type,status,note,rules,discord_url,line_url,telegram_url,facebook_url,tiktok_url)",
+      "clan:clans!clan_members_clan_id_fkey(id,name,slug,type,status,note,rules,discord_url,line_url,telegram_url,facebook_url,tiktok_url,members_preview_public,members_preview_columns)",
     )
     .eq("user_id", userId)
     .eq("status", "ACTIVE");
@@ -97,6 +98,11 @@ export default async function ClanSettingsPage({
             }}
           />
         </section>
+        <MemberPreviewSettings
+          clanSlug={clan.slug}
+          enabled={clan.members_preview_public}
+          columns={clan.members_preview_columns}
+        />
         <section
           id={htmlId("settings_clan_settings_page_section_2")}
           className="border-input mt-6 rounded-xl border p-5 sm:p-6"

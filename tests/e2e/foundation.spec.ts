@@ -140,3 +140,34 @@ test("public pages expose semantic unique IDs for headings and form controls", a
     expect(duplicates).toEqual([]);
   }
 });
+
+test("public member preview opens without login", async ({ page }) => {
+  await page.goto("/preview-members");
+  await expect(page).toHaveURL(/\/preview-members$/);
+  await expect(
+    page.getByRole("heading", { name: "รายชื่อสมาชิก", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("#preview_members_clan_form")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: /แก้ไข|ลบ|บันทึก/ }),
+  ).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.goto("/does-not-exist/preview-members");
+  await expect(page).toHaveURL(/\/does-not-exist\/preview-members$/);
+  await expect(page.locator("#preview_members_clan_form")).toHaveCount(0);
+  await expect(page.locator("#preview_members_empty")).toContainText(
+    "ไม่ได้เปิดรายชื่อสาธารณะ",
+  );
+});
+
+test("legacy member preview links redirect to the clan path", async ({
+  page,
+}) => {
+  await page.goto("/preview-members?clan=doo-white");
+  await expect(page).toHaveURL(/\/doo-white\/preview-members$/);
+  await expect(page.locator("#preview_members_clan_form")).toHaveCount(0);
+});

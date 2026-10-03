@@ -3,6 +3,11 @@ import { hasPublicEnv } from "@/lib/env";
 import { updateSession } from "@/lib/supabase/proxy";
 
 export async function proxy(request: NextRequest) {
+  if (
+    request.nextUrl.pathname === "/preview-members" ||
+    /^\/[^/]+\/preview-members\/?$/.test(request.nextUrl.pathname)
+  )
+    return NextResponse.next();
   if (!hasPublicEnv()) {
     if (
       request.nextUrl.pathname.startsWith("/profile") ||

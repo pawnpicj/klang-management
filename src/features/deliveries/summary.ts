@@ -59,36 +59,68 @@ export function summarizeMemberDeliveries({
     return { complete: true, missingDates: [], missingByAsset: [] };
   }
 
+  // Deliveries use numeric(20,4); integer units avoid fractional leftovers.
+  const scale = 10_000;
   const delivered = new Map<string, number>();
   for (const record of deliveries) {
-    if (record.member_id !== member.id) continue;
+    if (
+      record.member_id !== member.id ||
+      record.delivery_date < start ||
+      record.delivery_date > throughDate
+    )
+      continue;
     const key = `${record.delivery_date}:${record.asset_id}`;
-    delivered.set(key, (delivered.get(key) ?? 0) + Number(record.quantity));
+    delivered.set(
+      key,
+      (delivered.get(key) ?? 0) + Math.round(Number(record.quantity) * scale),
+    );
   }
 
-  const missingDates: string[] = [];
-  const missing = new Map<string, number>();
+  const obligations = new Map<string, { date: string; quantity: number }[]>();
+  const firstUnpaid = new Map<string, number>();
   for (const date of datesBetween(start, throughDate)) {
-    let dateIsMissing = false;
     for (const asset of assets) {
       if (
         Number(asset.required_quantity) <= 0 ||
         datePart(asset.created_at) > date
       )
         continue;
-      const deficit = Math.max(
-        Number(asset.required_quantity) -
-          (delivered.get(`${date}:${asset.id}`) ?? 0),
-        0,
-      );
-      if (deficit > 0) {
-        dateIsMissing = true;
-        missing.set(asset.id, (missing.get(asset.id) ?? 0) + deficit);
+      const debts = obligations.get(asset.id) ?? [];
+      debts.push({
+        date,
+        quantity: Math.round(Number(asset.required_quantity) * scale),
+      });
+      obligations.set(asset.id, debts);
+      let available = delivered.get(`${date}:${asset.id}`) ?? 0;
+      let index = firstUnpaid.get(asset.id) ?? 0;
+      // Pay the oldest accrued obligation first. Excess is not a future-day payment.
+      while (available > 0 && index < debts.length) {
+        const paid = Math.min(available, debts[index].quantity);
+        debts[index].quantity -= paid;
+        available -= paid;
+        if (debts[index].quantity === 0) index++;
       }
+      firstUnpaid.set(asset.id, index);
     }
-    if (dateIsMissing) missingDates.push(date);
   }
 
+  const unpaidDates = new Set<string>();
+  const missing = new Map<string, number>();
+  for (const [assetId, debts] of obligations) {
+    let total = 0;
+    for (
+      let index = firstUnpaid.get(assetId) ?? 0;
+      index < debts.length;
+      index++
+    ) {
+      if (debts[index].quantity > 0) {
+        total += debts[index].quantity;
+        unpaidDates.add(debts[index].date);
+      }
+    }
+    if (total > 0) missing.set(assetId, total / scale);
+  }
+  const missingDates = [...unpaidDates].sort();
   return {
     complete: missingDates.length === 0,
     missingDates,
